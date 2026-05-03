@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Safety Harbor: Prevents search engines from indexing the simulation -->
+    <meta name="robots" content="noindex, nofollow">
+    <title>Doba | Inventory Management Training</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --doba-green: #00b929;
+            --sidebar-bg: #1c1c1c;
+            --sidebar-width: 240px;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e5e7eb;
+            --bg-light: #f3f4f6;
+            --bg-white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        html, body { 
+            height: 100%; width: 100%; overflow: hidden; 
+            background-color: var(--bg-light); color: var(--text-main); 
+            -webkit-font-smoothing: antialiased; 
+            text-rendering: optimizeLegibility; 
+        }
+        body { display: flex; flex-direction: column; }
+
+        /* --- SIMULATION BANNER --- */
+        .simulation-banner {
+            background-color: #ef4444;
+            color: #ffffff;
+            text-align: center;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            z-index: 9999;
+        }
+
+        /* --- APP CONTAINER --- */
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: var(--sidebar-width); background: var(--sidebar-bg); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; height: 100%; overflow-y: auto; position: relative; }
+        .sidebar-logo { padding: 20px 24px; display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+        .logo-icon { width: 24px; height: 24px; background: #fff; border-radius: 4px; position: relative; }
+        .logo-icon::after { content: ''; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--doba-green); border-radius: 50%; }
+        
+        .sidebar-toggle { position: absolute; top: 70px; right: -12px; width: 24px; height: 24px; background: #fff; border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; color: #666; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .nav-item { display: flex; align-items: center; padding: 12px 24px; text-decoration: none; color: #a3a3a3; font-size: 14px; gap: 12px; cursor: pointer; }
+        .nav-item:hover { color: #fff; }
+        .nav-item.active { background: var(--doba-green); color: #fff; font-weight: 600; }
+        .nav-group-header { padding: 16px 24px 8px; font-size: 13px; font-weight: 600; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .nav-group-header:hover { background: rgba(255,255,255,0.05); }
+        .sub-link { padding: 10px 24px 10px 48px; font-size: 13px; color: #a3a3a3; display: block; text-decoration: none; cursor: pointer; }
+        .sub-link:hover { color: #fff; }
+        
+        .reward-tag { background: var(--doba-green); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: 600; }
+        .tutorial-box { margin: 20px 24px 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.2); text-align: center; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; color: var(--doba-green); background: rgba(0, 185, 41, 0.05); border-color: var(--doba-green); }
+        .plan-badge { margin: 10px 24px 20px; padding: 12px 16px; background: linear-gradient(90deg, #fcebc7 0%, #f4d4a9 100%); border-radius: 4px; display: flex; justify-content: space-between; align-items: center; color: #784e1f; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex: 1; display: flex; flex-direction: column; height: 100%; overflow-y: auto; background-color: var(--bg-light); scroll-behavior: auto; }
+
+        /* Header */
+        .top-header { padding: 12px 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); background: var(--bg-white); position: sticky; top: 0; z-index: 50; }
+        .header-title { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; color: #111; }
+        
+        .header-center { flex: 1; display: flex; justify-content: flex-end; padding-right: 30px; }
+        .header-search { position: relative; width: 320px; }
+        .header-search input { width: 100%; padding: 8px 35px 8px 16px; border: 1px solid var(--border-color); border-radius: 20px; font-size: 13px; outline: none; }
+        .header-search span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--doba-green); font-size: 16px; font-weight: bold; }
+
+        .header-right { display: flex; align-items: center; gap: 24px; }
+        .curated-link { font-size: 13px; color: #333; display: flex; align-items: center; gap: 4px; position: relative; cursor: pointer; }
+        .red-dot { width: 6px; height: 6px; background: #ff4d4f; border-radius: 50%; position: absolute; top: -2px; right: -6px; }
+        .icon-btn { position: relative; font-size: 20px; cursor: pointer; color: #555; }
+        .cart-badge { position: absolute; top: -6px; right: -8px; background: #f0f0f0; color: #666; font-size: 10px; padding: 2px 5px; border-radius: 10px; font-weight: 600; border: 1px solid #ddd; }
+        
+        /* User Profile & Dropdown */
+        .user-profile { position: relative; display: flex; align-items: center; gap: 10px; cursor: pointer; border-left: 1px solid var(--border-color); padding-left: 24px; padding-bottom: 10px; margin-bottom: -10px; z-index: 1000; }
+        .avatar-img { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; background: #f3f4f6; font-size: 16px; }
+        .user-info { line-height: 1.3; }
+        .user-info strong { font-size: 13px; color: #333; display: flex; align-items: center; gap: 4px; font-weight: 600; }
+        .user-info span { color: #999; font-size: 11px; }
+
+        .profile-dropdown {
+            position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid #eee;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 220px; opacity: 0; visibility: hidden;
+            transform: translateY(5px); transition: all 0.2s ease; z-index: 2000; padding: 4px 0; border-radius: 4px;
+        }
+        .user-profile:hover .profile-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-item { display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 15px; line-height: 1.2; }
+        .dropdown-item:hover { background-color: #f8f9fa; }
+        .dropdown-dashed { border-top: 1px dashed #ddd; margin: 8px 15px; }
+        .dropdown-solid { border-top: 1px solid #eee; margin: 4px 0;}
+
+        /* --- CONTENT WRAPPER --- */
+        .content-wrapper { padding: 24px 30px; display: flex; flex-direction: column; min-height: calc(100vh - 65px - 34px); } /* subtracted banner height */
+        .page-card { background: var(--bg-white); border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 24px; position: relative; flex: 1; }
+
+        /* LOADING SIMULATOR */
+        .loader-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.8); z-index: 100;
+            display: none; justify-content: center; align-items: flex-start;
+            padding-top: 150px; border-radius: 6px; backdrop-filter: blur(2px);
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #f3f4f6; border-top: 4px solid var(--doba-green);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- FILTERS & TOOLBAR --- */
+        .toolbar-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .alert-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid var(--doba-green); border-radius: 4px; color: var(--doba-green); font-size: 13px; font-weight: 500; background: #fff; cursor: pointer; }
+        .utility-btns { display: flex; gap: 12px; }
+        .btn-outline { background: #fff; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 4px; font-size: 13px; color: #333; cursor: pointer; }
+        .select-outline { padding: 8px 30px 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; background: #fff; color: #333; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23999" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position-x: 100%; background-position-y: 5px; }
+        
+        .filters-wrapper { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .search-main { position: relative; width: 320px; }
+        .search-main input { width: 100%; padding: 9px 35px 9px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none; }
+        .search-main span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #999; font-size: 16px; }
+        .reset-btn { background: none; border: none; color: #666; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: 8px; }
+        .more-filters { color: #3b82f6; text-decoration: none; font-size: 13px; font-weight: 500; margin-left: 10px; cursor: pointer; }
+
+        /* Action Row & Global Select Link */
+        .action-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; }
+        .action-left { display: flex; align-items: center; gap: 10px; }
+        
+        .selection-status { font-size: 14px; color: #555; font-weight: 500; margin-right: 4px; display: none; }
+        .global-select-wrapper { display: none; padding-bottom: 12px; margin-top: -4px; }
+        .global-select-link { color: #2563eb; text-decoration: none; font-size: 13px; font-weight: 400; cursor: pointer; }
+        .global-select-link:hover { text-decoration: underline; }
+
+        .btn-primary { background: var(--doba-green); color: #fff; border: none; padding: 9px 16px; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .btn-default { background: #fff; border: 1px solid var(--border-color); padding: 9px 16px; border-radius: 4px; font-size: 13px; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .results-text { font-size: 13px; color: #666; margin-left: 16px; }
+
+        /* --- TABLE --- */
+        .data-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+        
+        .table-header { background: #fafafa; display: grid; grid-template-columns: 40px 4fr 1.5fr 1fr 1.5fr 1.5fr 1fr; border-bottom: 1px solid var(--border-color); }
+        .th-cell { padding: 12px 16px; font-size: 12px; font-weight: 600; color: #666; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--border-color); text-align: left; }
+        .th-cell:last-child { border-right: none; }
+        .th-sub { font-weight: 400; color: #999; margin-top: 4px; font-size: 11px; }
+        
+        .product-group { border-bottom: 1px solid var(--border-color); }
+        .product-group:last-child { border-bottom: none; }
+        
+        .master-row { display: grid; grid-template-columns: 40px 1fr auto; padding: 16px; align-items: start; background: #fff; }
+        .master-checkbox { margin-top: 4px; }
+        .master-info { padding-right: 20px; }
+        .product-title { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 8px; line-height: 1.4; }
+        .product-tags { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #666; }
+        .tag-pill { background: #f3f4f6; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); color: #555; }
+        .tag-link { color: #3b82f6; text-decoration: none; cursor: pointer; }
+        .action-link { color: #3b82f6; font-size: 13px; text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+        .variant-row { display: grid; grid-template-columns: 40px 4fr 1.5fr 1fr 1.5fr 1.5fr 1fr; padding: 12px 16px; align-items: center; background: #fff; font-size: 13px; color: #333; border-top: 1px solid #f9fafb; }
+        .variant-product { display: flex; align-items: center; gap: 16px; }
+        .variant-thumb { width: 48px; height: 48px; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
+        .variant-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .sku-col { display: flex; flex-direction: column; gap: 6px; }
+        .dl-badge { background: #fff; border: 1px solid var(--border-color); color: #666; font-size: 10px; padding: 2px 6px; border-radius: 2px; align-self: flex-start; }
+        .price-col { display: flex; align-items: center; gap: 4px; }
+        .trend-icon { color: #f59e0b; font-size: 12px; }
+        .show-all-row { padding: 12px 16px 16px 56px; font-size: 12px; color: #666; background: #fff; }
+
+        .unavailable-item .product-title { color: #999; }
+        .unavailable-item .master-info { opacity: 0.8; }
+        .unavailable-alert { color: #ff4d4f; font-size: 12px; margin-bottom: 6px; }
+        .unavailable-text { color: #ff4d4f; font-size: 12px; margin-top: 4px; }
+
+        /* Pagination Footer */
+        .pagination-container { display: flex; justify-content: flex-end; align-items: center; padding: 16px; background: #fff; gap: 8px; font-size: 13px; border-top: 1px solid var(--border-color); }
+        .page-btn { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 4px; background: #fff; color: #333; cursor: pointer; text-decoration: none; font-family: inherit; }
+        .page-btn:hover:not(:disabled) { border-color: var(--doba-green); color: var(--doba-green); }
+        .page-btn.active { background: var(--doba-green); color: #fff; border-color: var(--doba-green); }
+        .page-btn:disabled { color: #ccc; background: #f9f9f9; cursor: not-allowed; border-color: #eee; }
+        .page-dots { color: #999; padding: 0 4px; }
+        .page-select { margin-left: 10px; }
+
+        .support-widget { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; }
+        .support-bubble { background: #fff; padding: 16px 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 13px; font-weight: 500; color: #333; margin-bottom: 16px; position: relative; border: 1px solid var(--border-color); width: 220px; text-align: center; }
+        .chat-btn { width: 56px; height: 56px; background: var(--doba-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 185, 41, 0.3); }
+        input[type="checkbox"] { width: 14px; height: 14px; border: 1px solid #ccc; border-radius: 2px; cursor: pointer; }
+
+        /* --- DOWNLOAD MODAL CSS --- */
+        .modal-overlay-bg {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5); z-index: 3000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-container {
+            background: #fff; border-radius: 8px; width: 620px; max-width: 95%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column;
+        }
+        .modal-header {
+            padding: 16px 24px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h2 { font-size: 16px; font-weight: 600; color: #111; }
+        .modal-close-icon { background: none; border: none; font-size: 20px; color: #999; cursor: pointer; }
+        
+        .modal-body { padding: 24px; }
+        .modal-row { display: grid; grid-template-columns: 120px 1fr; margin-bottom: 24px; align-items: start; }
+        .modal-label { font-size: 13px; color: #333; margin-top: 2px; }
+        .modal-input { font-size: 13px; color: #333; }
+        
+        .radio-group { display: flex; gap: 24px; margin-bottom: 16px; }
+        .radio-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
+        .radio-label input[type="radio"] { display: none; }
+        .custom-radio { width: 16px; height: 16px; border: 1px solid #ccc; border-radius: 50%; display: inline-block; position: relative; }
+        .radio-label input[type="radio"]:checked + .custom-radio { border-color: var(--doba-green); }
+        .radio-label input[type="radio"]:checked + .custom-radio::after {
+            content: ''; position: absolute; top: 3px; left: 3px; width: 8px; height: 8px;
+            background: var(--doba-green); border-radius: 50%;
+        }
+
+        .modal-bullets { list-style-type: disc; padding-left: 18px; color: #333; line-height: 1.8; font-size: 13px; margin: 0; }
+        
+        /* Toggle Switch */
+        .toggle-switch { position: relative; width: 44px; height: 22px; display: inline-block; margin-right: 8px;}
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-switch label {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #e5e7eb; transition: .3s; border-radius: 22px;
+        }
+        .toggle-switch label:before {
+            position: absolute; content: "off"; font-size: 10px; color: #666; top: 4px; right: 6px; font-weight: 600; transition: .3s;
+        }
+        .toggle-switch label:after {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px;
+            background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .toggle-switch input:checked + label { background-color: var(--doba-green); }
+        .toggle-switch input:checked + label:before { content: "on"; left: 6px; right: auto; color: white; }
+        .toggle-switch input:checked + label:after { transform: translateX(22px); }
+
+        .modal-footer {
+            padding: 16px 24px; border-top: 1px solid var(--border-color);
+            display: flex; justify-content: flex-end; gap: 12px;
+        }
+
+        /* --- DOWNLOAD CENTER CSS --- */
+        .dc-header-row { display: flex; align-items: center; font-size: 13px; color: #333; margin-bottom: 20px; }
+        .dc-info-icon { color: #999; margin-left: 6px; font-size: 14px; cursor: pointer; }
+        
+        .dc-tips-box { margin-bottom: 24px; color: #333; font-size: 13px; line-height: 1.6; }
+        .dc-tips-title { display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 4px; }
+        .dc-tips-list { list-style: none; }
+        
+        .dc-table { width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+        .dc-th { background: #fafafa; padding: 16px; text-align: left; font-weight: 600; color: #666; border-bottom: 1px solid var(--border-color); }
+        .dc-td { padding: 16px; color: #333; border-bottom: 1px solid #f3f4f6; }
+        .dc-table tr:last-child .dc-td { border-bottom: none; }
+        .dc-link { color: #2563eb; text-decoration: none; cursor: pointer; }
+        .dc-link:hover { text-decoration: underline; }
+        .dc-refresh { color: #999; font-size: 12px; margin-left: 4px; cursor: pointer; }
+
+        /* Footer links */
+        .footer-links { text-align: center; padding: 20px 0; font-size: 12px; color: #999; margin-top: auto; }
+        .footer-links a { color: #999; text-decoration: none; margin: 0 8px; }
+        .footer-links a:hover { color: #666; }
+    </style>
+</head>
+<body>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><div class="logo-icon"></div> doba</div>
+            <div class="sidebar-toggle">◂</div>
+            <a class="nav-item">✨ AI Tool Hub</a>
+            <div class="nav-group-header"><span>📦 My Products</span><span>⌃</span></div>
+            <a class="nav-item active route-inventory" id="nav-inventory" style="padding-left: 48px;">Inventory List</a>
+            <a class="sub-link">Saved Searches</a>
+            <a class="sub-link">Listings</a>
+            <a class="sub-link">Connection</a>
+            <a class="nav-item route-download-center" id="nav-download-center" style="padding-left: 48px; margin-top: 4px; background: transparent;">Download Center</a>
+            <div class="nav-group-header" style="color: #a3a3a3;"><span>📝 My Orders</span><span>⌄</span></div>
+            <a class="nav-item">🏪 Stores <span class="reward-tag">Redeem My Reward</span></a>
+            <a class="nav-item">💳 Wallet</a>
+            <a class="nav-item">🏷️ Pricing Plan</a>
+            <a class="nav-item">👥 Affiliate Program</a>
+            <div class="tutorial-box">Tutorial Center</div>
+            <div class="plan-badge"><span style="display:flex; align-items:center; gap:6px;">💎 Standard</span><span style="font-size:14px; color:#c7914a;">ⓘ</span></div>
+        </aside>
+
+        <div class="main" id="main-scroll-area">
+            <header class="top-header">
+                <div class="header-title" id="main-header-title">Inventory List <span style="color:#999; font-weight:400; font-size:16px; margin-left:2px; cursor:pointer;">ⓘ</span></div>
+                <div class="header-center">
+                    <div class="header-search"><input type="text" placeholder="Search Products"><span>⚲</span></div>
+                </div>
+                <div class="header-right">
+                    <div class="curated-link">Curated List <span class="red-dot"></span></div>
+                    <div class="icon-btn">🔔<span class="red-dot"></span></div>
+                    <div class="icon-btn">🛒<span class="cart-badge">0</span></div>
+                    
+                    <!-- USER PROFILE DROPDOWN MENU -->
+                    <div class="user-profile">
+                        <div class="avatar-img">👤</div>
+                        <div class="user-info">
+                            <strong>Trainee <span style="color:#f5d5b0">💎</span> ⌄</strong>
+                            <span>Retailer ID is 8997811</span>
+                        </div>
+                        
+                        <div class="profile-dropdown">
+                            <a href="#" class="dropdown-item">My Doba</a>
+                            <a href="#" class="dropdown-item route-inventory">Inventory List</a>
+                            <a href="#" class="dropdown-item">Saved Searches</a>
+                            <div class="dropdown-dashed"></div>
+                            <a href="#" class="dropdown-item">Store Orders</a>
+                            <a href="#" class="dropdown-item">Purchase Orders</a>
+                            <a href="#" class="dropdown-item">My Claim</a>
+                            <div class="dropdown-solid"></div>
+                            <a href="#" class="dropdown-item">Log Out</a>
+                        </div>
+                    </div>
+                    
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-card">
+                    
+                    <div class="loader-overlay" id="page-loader">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VIEW 1: INVENTORY LIST                     -->
+                    <!-- ========================================== -->
+                    <div id="inventory-view">
+                        <div class="toolbar-row">
+                            <button class="alert-btn"><span>⍾</span> Product Updates Alert</button>
+                            <div class="utility-btns">
+                                <button class="btn-outline">Tag Management</button>
+                                <select class="select-outline"><option>Unavailable Products</option></select>
+                            </div>
+                        </div>
+
+                        <!-- UPDATED FILTERS WRAPPER -->
+                        <div class="filters-wrapper">
+                            <!-- ROW 1 -->
+                            <div class="filter-row">
+                                <div class="search-main"><input type="text" placeholder="Search Product Name or Item No."><span>⚲</span></div>
+                                <select class="select-outline" style="min-width:160px;"><option>Products Updates</option></select>
+                                <select class="select-outline" style="min-width:140px;"><option>All Tags</option></select>
+                                <select class="select-outline" style="min-width:150px;"><option>All Suppliers</option></select>
+                                <select class="select-outline" style="min-width:140px;"><option>Inventory</option></select>
+                                <a class="more-filters" id="toggle-filters-btn">More Filters</a>
+                            </div>
+                            
+                            <!-- ROW 2 (Hidden by default) -->
+                            <div class="filter-row" id="extended-filters" style="display: none;">
+                                <select class="select-outline" style="min-width:150px;"><option>All Categories</option></select>
+                                <select class="select-outline" style="min-width:150px;"><option>Added Time</option></select>
+                                <select class="select-outline" style="min-width:160px;"><option>Listed or Unlisted</option></select>
+                                <select class="select-outline" style="min-width:190px;"><option>Downloaded or Undown...</option></select>
+                                <select class="select-outline" style="min-width:190px; border-color: var(--doba-green);"><option>Connected or Unconne...</option></select>
+                                
+                                <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#555; cursor:pointer; margin-left:8px;">
+                                    <input type="checkbox" style="width:14px; height:14px; cursor:pointer;"> On Sale
+                                </label>
+                                
+                                <button class="reset-btn" style="margin-left: 12px;">↻ Reset</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="action-row">
+                                <div class="action-left">
+                                    <span id="selection-status" class="selection-status">20 Product(s) Selected</span>
+                                    
+                                    <button class="btn-primary"><span>✨</span> List to Store</button>
+                                    <button class="btn-default" id="btn-download"><span>⤓</span> Download</button>
+                                    <button class="btn-default"><span>+</span> Add Tags</button>
+                                    <button class="btn-default"><span>🗑</span> Remove</button>
+                                    
+                                    <span class="results-text">40 Results</span>
+                                </div>
+                                <select class="select-outline" style="min-width:150px;"><option>Sort by</option></select>
+                            </div>
+                            
+                            <div class="global-select-wrapper" id="global-select-wrapper">
+                                <a class="global-select-link" id="global-select-btn">Select all 40 search results</a>
+                            </div>
+                        </div>
+
+                        <div class="data-table">
+                            <div class="table-header">
+                                <div class="th-cell" style="align-items:center;"><input type="checkbox" id="master-header-checkbox"></div>
+                                <div class="th-cell">Products</div>
+                                <div class="th-cell" style="text-align:center; align-items:center;">Item No.</div>
+                                <div class="th-cell" style="text-align:center; align-items:center;">Inventory</div>
+                                <div class="th-cell" style="text-align:center; align-items:center;">Product Price ⚙<div class="th-sub">Price (Delivery)</div></div>
+                                <div class="th-cell" style="text-align:center; align-items:center;">Shipping Cost ⓘ</div>
+                                <div class="th-cell" style="text-align:center; align-items:center;">Action</div>
+                            </div>
+
+                            <!-- ============================================== -->
+                            <!-- PAGE 1 WRAPPER                                 -->
+                            <!-- ============================================== -->
+                            <div id="page-1-content">
+                                <!-- ITEM 1 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Umbrella With Storage Case</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: 3P EXPERTS</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23e0f2fe'/><text x='50%' y='50%' font-family='sans-serif' font-size='10' font-weight='bold' fill='%230284c7' text-anchor='middle' dominant-baseline='middle'>SKY</text></svg>"></div><span>Color: Sky</span></div><div class="sku-col"><span>D01027RP906</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">25</div><div style="text-align:center;">US$ 12.64</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23ffe4e6'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%239f1239' text-anchor='middle' dominant-baseline='middle'>BURGD</text></svg>"></div><span>Color: Burgandy</span></div><div class="sku-col"><span>D01027RP9QT</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">25</div><div style="text-align:center;">US$ 12.64</div><div></div><div></div></div>
+                                    <div class="show-all-row">Show all 10 variants ⌄</div>
+                                </div>
+                                <!-- ITEM 2 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Water Filter Pitcher, 6 Cup Glass Water Filter Dispenser, Fast & Compact Fridge-friendly Water Filtration System...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: vevor</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23e5e7eb'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23374151' text-anchor='middle' dominant-baseline='middle'>PITCH</text></svg>"></div><span>Default: Default</span></div><div class="sku-col"><span>D0102774YPX</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">33</div><div class="price-col" style="justify-content:center;">US$ 23.64 <span class="trend-icon">📈</span></div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 3 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Pitcher Water Filter Replacements, 3-pack Water Filters for Pitchers and Dispensers, No BPA...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: vevor</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23f3f4f6'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%234b5563' text-anchor='middle' dominant-baseline='middle'>FILTR</text></svg>"></div><span>Default: Default</span></div><div class="sku-col"><span>D010277TVU6</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">291</div><div class="price-col" style="justify-content:center;">US$ 14.96 <span class="trend-icon">📈</span></div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 4 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Battery Portable Camping Fan 20000mAh Rechargeable Power Bank with 270° Rotation</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: inQ Boutique</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23fed7aa'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23c2410c' text-anchor='middle' dominant-baseline='middle'>FAN</text></svg>"></div><span>title: default title</span></div><div class="sku-col"><span>D01027H7GSG</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">50</div><div class="price-col" style="justify-content:center;">US$ 40.82 <span class="trend-icon">📈</span></div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 5 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">19Pcs Camping Cookware Set - Portable Outdoor Kitchen Gear with Bag...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Global Bazaar</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23f3f4f6'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%234b5563' text-anchor='middle' dominant-baseline='middle'>COOK2</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Multi</span><span>Size: One size</span></div></div><div class="sku-col"><span>D0102X3Z0MV</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">6</div><div style="text-align:center;">US$ 49.48</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 6 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Yakimoto Ice Chest Beverage Beer Cooler Box With Bottle Opener, 51L/54Qt...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Yakimoto Cooler</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23bfdbfe'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%231d4ed8' text-anchor='middle' dominant-baseline='middle'>COOL</text></svg>"></div><span>Capacity: 51L/54Qt</span></div><div class="sku-col"><span>D01027H9K7A</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">41</div><div style="text-align:center;">US$ 115.78</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 7 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Portable Camping Ceiling LED Fan 10400mAh USB Battery Powered Hanging Tent Lantern Fan...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Global Bazaar</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23a7f3d0'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23047857' text-anchor='middle' dominant-baseline='middle'>FAN2</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Black</span><span>Size: 10400mAh</span></div></div><div class="sku-col"><span>D0102X3ZZ07</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">84</div><div style="text-align:center;">US$ 51.58</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 8 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">12Pcs Camping Cookware Set Camping Stove Aluminum Pot Pans Kit (Black)</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Global Bazaar</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%239ca3af'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23374151' text-anchor='middle' dominant-baseline='middle'>COOK</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Black</span><span>Size: One size</span></div></div><div class="sku-col"><span>D01027HIFTG</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">42</div><div style="text-align:center;">US$ 53.69</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 9 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Outdoor camping, mosquito proof head protection net, mosquito mask...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: MESSIA SAM SUN</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23bbf7d0'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23166534' text-anchor='middle' dominant-baseline='middle'>NET</text></svg>"></div><span>color: green</span></div><div class="sku-col"><span>D01017HI877</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">666</div><div style="text-align:center;">US$ 24.42</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 10 (Unavailable) -->
+                                <div class="product-group unavailable-item">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="unavailable-alert">The product is unavailable now.</div><div class="product-title">Acupressure Insoles - Comfortable and Breathable, Arch Support...</div><div class="product-tags"><span class="tag-pill" style="opacity: 0.6;">Camping</span><a href="#" class="tag-link" style="opacity: 0.6;">Edit</a> | <span style="color: #bbb;">Supplier: JIAYIN</span></div></div><a class="action-link">Remove</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb" style="opacity: 0.5;"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23f3f4f6'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%239ca3af' text-anchor='middle' dominant-baseline='middle'>INSL</text></svg>"></div><div style="display:flex; flex-direction:column;"><span style="color: #999;">Size: S(Men 4-7/Women 5-8)</span><span class="unavailable-text">Unavailable</span></div></div><div class="sku-col"><span style="color: #999;">D0102X3Y3QU</span><span class="dl-badge" style="opacity: 0.6;">Downloaded</span></div><div style="text-align:center; color: #999;">1000</div><div style="text-align:center; color: #999;">US$ 24.52</div><div style="text-align:center; color: #999;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 11 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Houkea Insole Care Soft And Comfortable Elastic Insole Outdoor Sports Running</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: CCP</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23e5e7eb'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23374151' text-anchor='middle' dominant-baseline='middle'>INSL</text></svg>"></div><span>Quantity: 40g</span></div><div class="sku-col"><span>D0102X3BDFU</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">214</div><div style="text-align:center;">US$ 6.84</div><div style="text-align:center;">US$ 6.32</div><div></div></div>
+                                </div>
+                                <!-- ITEM 12 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">(FST-RV-11)Personal Water Filter for Hiking, RV Camping, Travel, and Emergency Preparedness</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Niceted</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23bae6fd'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%230369a1' text-anchor='middle' dominant-baseline='middle'>FILT</text></svg>"></div><span>Color: Blue</span></div><div class="sku-col"><span>D0102X3IC8V</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">117</div><div style="text-align:center;">US$ 10.10</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 13 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">2Pcs Walking Sticks Collapsible Hiking Poles Folding Aluminum Trekking Poles...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Linx Deals</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23374151'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>BLK</text></svg>"></div><span>Color: Black</span></div><div class="sku-col"><span>D01027HHB3W</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">0</div><div style="text-align:center;">US$ 31.17</div><div style="text-align:center;">US$ 2.22</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23fca5a5'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23991b1b' text-anchor='middle' dominant-baseline='middle'>RED</text></svg>"></div><span>Color: Red</span></div><div class="sku-col"><span>D01027HHB3A</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">0</div><div style="text-align:center;">US$ 31.17</div><div></div><div></div></div>
+                                </div>
+                                <!-- ITEM 14 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Three-section Straight Handle Retractable Trekking Poles</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: adawe-store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23d1d5db'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23111827' text-anchor='middle' dominant-baseline='middle'>BLK</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Black</span><span>Type: Walking Sticks</span></div></div><div class="sku-col"><span>D0101X39DLW</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">50</div><div style="text-align:center;">US$ 47.37</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23fecaca'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23991b1b' text-anchor='middle' dominant-baseline='middle'>RED</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Red</span><span>Type: Walking Sticks</span></div></div><div class="sku-col"><span>D0101X39DQY</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">50</div><div style="text-align:center;">US$ 47.37</div><div></div><div></div></div>
+                                    <div class="show-all-row">Show all 4 variants ⌄</div>
+                                </div>
+                                <!-- ITEM 15 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">12Pcs Camping Cookware Set Camping Stove Aluminum Pot Pans Kit (Grey)</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Kacuyelin Boutique Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23d1d5db'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23374151' text-anchor='middle' dominant-baseline='middle'>GREY</text></svg>"></div><span>color: Grey</span></div><div class="sku-col"><span>D0102XTWW3G</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">194</div><div style="text-align:center;">US$ 38.42</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 16 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">125Pcs Survival Kits Professional Emergency Survival Gear Tactical First Aid...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Kacuyelin Boutique Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23fca5a5'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23991b1b' text-anchor='middle' dominant-baseline='middle'>SURV</text></svg>"></div><span>Color: AS PIC</span></div><div class="sku-col"><span>D0102XTY0RV</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">399</div><div style="text-align:center;">US$ 49.80</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 17 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">4 Rolls Black Garbage Bags 6.18 Gallons Unscented Disposable Trash Bags...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Kacuyelin Boutique Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23111827'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>BAG</text></svg>"></div><span>color: black</span></div><div class="sku-col"><span>D0102HQULNY</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">109</div><div style="text-align:center;">US$ 16.02</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 18 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Tactical Hydration Packs for Hiking Cycling Climbing Running</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: adawe-store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23374151'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>BLK</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Black</span><span>Type: Hydration Backs</span></div></div><div class="sku-col"><span>D0102HQYGLA</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">30</div><div style="text-align:center;">US$ 48.43</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23d97706'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fffbeb' text-anchor='middle' dominant-baseline='middle'>KHKI</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Khaki</span><span>Type: Hydration Backs</span></div></div><div class="sku-col"><span>D0102HQYGQU</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">30</div><div style="text-align:center;">US$ 48.43</div><div></div><div></div></div>
+                                    <div class="show-all-row">Show all 4 variants ⌄</div>
+                                </div>
+                                <!-- ITEM 19 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">2 Packs 10000mAh Split-Magnetic Handwarmers 2 in 1 Portable Electric Pocket Heater...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Linx Deals</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%231f2937'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>BLK</text></svg>"></div><span>Color: Black</span></div><div class="sku-col"><span>D0102HGW4GV</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">4</div><div class="price-col" style="justify-content:center;">US$ 25.57 <span class="trend-icon">📈</span></div><div style="text-align:center;">US$ 2.22</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23e5e7eb'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%234b5563' text-anchor='middle' dominant-baseline='middle'>SLVR</text></svg>"></div><span>Color: Silver</span></div><div class="sku-col"><span>D0102HGW4GA</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">1</div><div class="price-col" style="justify-content:center;">US$ 25.57 <span class="trend-icon">📈</span></div><div></div><div></div></div>
+                                </div>
+                                <!-- ITEM 20 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">20000mAh Rechargeable Oscillating Camping Fan with Flashlight Hanging Hook Remote...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Linx Deals</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%2310b981'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23064e3b' text-anchor='middle' dominant-baseline='middle'>FAN</text></svg>"></div><span>Type: Camping Fan</span></div><div class="sku-col"><span>D0102HGPG0W</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">1</div><div style="text-align:center;">US$ 45.04</div><div style="text-align:center;">US$ 2.22</div><div></div></div>
+                                </div>
+                            </div>
+
+                            <!-- ============================================== -->
+                            <!-- PAGE 2 WRAPPER                                 -->
+                            <!-- ============================================== -->
+                            <div id="page-2-content" style="display: none;">
+                                <!-- ITEM 21 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">5L Water Bag Folding Portable Sports Storage Container Jug Bottle For Outdoor Travel Camping with Handle Folding Water Bag</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Nice Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%233b82f6'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23eff6ff' text-anchor='middle' dominant-baseline='middle'>BAG</text></svg>"></div><span>color: Blue-540114</span></div><div class="sku-col"><span>D0101H2U12U</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">1000</div><div style="text-align:center;">US$ 5.90</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 22 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">32L Soft Cooler Bag with Hard Liner Large Insulated Picnic Lunch Bag Box Cooling Bag for Camping BBQ Family Outdoor Activities</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Nice Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%239ca3af'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23111827' text-anchor='middle' dominant-baseline='middle'>COOL</text></svg>"></div><span>Color: Gray</span></div><div class="sku-col"><span>D0101H2U127</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">1000</div><div style="text-align:center;">US$ 34.73</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23ef4444'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%237f1d1d' text-anchor='middle' dominant-baseline='middle'>RED</text></svg>"></div><span>Color: Red</span></div><div class="sku-col"><span>D0101H2U12G</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">998</div><div style="text-align:center;">US$ 34.73</div><div></div><div></div></div>
+                                    <div class="show-all-row">Show all 3 variants ⌄</div>
+                                </div>
+                                <!-- ITEM 23 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">7 In 1 Multifunctional Outdoor Tableware Stainless Steel Foldable Fork Spoon Knife Picnic Camping Hiking Travelling Dinnerware</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Nice Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%234ade80'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%2314532d' text-anchor='middle' dominant-baseline='middle'>GRN</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>color: GREEN</span><span>Ships From: SPAIN</span></div></div><div class="sku-col"><span>D0101H2U1SW</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">995</div><div style="text-align:center;">US$ 10.52</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 24 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">7800mAh Portable Camping Fan Rechargeable Multifunctional Mini Fan USB Outdoor Hang Ceiling Fan Led Light Desktop Fan Power Bank</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: yoyo</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23fb923c'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%237c2d12' text-anchor='middle' dominant-baseline='middle'>ORG</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Orange</span><span>Ships From: China</span></div></div><div class="sku-col"><span>D0101H21TEW</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">1000</div><div style="text-align:center;">US$ 41.45</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23facc15'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23713f12' text-anchor='middle' dominant-baseline='middle'>YLW</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Yellow</span><span>Ships From: China</span></div></div><div class="sku-col"><span>D0101H21TPG</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">1000</div><div style="text-align:center;">US$ 41.45</div><div></div><div></div></div>
+                                    <div class="show-all-row">Show all 3 variants ⌄</div>
+                                </div>
+                                <!-- ITEM 25 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">2Pcs Telescoping Tarp Poles Portable Aluminum Awning Poles 3ft to 7.5ft Adjustable Telescopic Tarp Tent Rods</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Linx Deals</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23111827'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f3f4f6' text-anchor='middle' dominant-baseline='middle'>BLK</text></svg>"></div><span>Color: Black</span></div><div class="sku-col"><span>D0102H2JWTW</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">0</div><div style="text-align:center;">US$ 33.45</div><div style="text-align:center;">US$ 4.74</div><div></div></div>
+                                </div>
+                                <!-- ITEM 26 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Outdoor Multifunctional MOLLE Attachment Medical Kit Climbing Climbing Survival KitOutdoor Gear Emergency Kits Trauma Bag For Camping ...</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Nice Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23d97706'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fffbeb' text-anchor='middle' dominant-baseline='middle'>KHKI</text></svg>"></div><span>color: Khaki</span></div><div class="sku-col"><span>D0101H2JDM7</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 9.28</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%231f2937'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>BLK</text></svg>"></div><span>color: Black</span></div><div class="sku-col"><span>D0101H2JDMG</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 9.28</div><div></div><div></div></div>
+                                </div>
+                                <!-- ITEM 27 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Portable Rain Hat Outdoor Folding Umbrella Fishing Sun Shade Anti-UV Camping Fishing Headwear Cap Beach Head Hat Accessory</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Nice Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23ef4444'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fee2e2' text-anchor='middle' dominant-baseline='middle'>MULTI</text></svg>"></div><span>color: Watermelon Rind</span></div><div class="sku-col"><span>D0101H2JDBA</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 7.17</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23fef08a'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23854d0e' text-anchor='middle' dominant-baseline='middle'>YLW</text></svg>"></div><span>color: Yellow</span></div><div class="sku-col"><span>D0101H2JD1G</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 7.17</div><div></div><div></div></div>
+                                    <div class="show-all-row">Show all 8 variants ⌄</div>
+                                </div>
+                                <!-- ITEM 28 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">1pc 60L Portable Outdoor Backpack; Waterproof Dust Cover Travel Backpack Rain Cover Camping Sports Accessories</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Nice Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%2378716c'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f5f5f4' text-anchor='middle' dominant-baseline='middle'>CAMO</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>color: Camouflage</span><span>Capacity: 60L</span></div></div><div class="sku-col"><span>D0101H2JD9W</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 7.86</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23f97316'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fff7ed' text-anchor='middle' dominant-baseline='middle'>ORG</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>color: Orange</span><span>Capacity: 60L</span></div></div><div class="sku-col"><span>D0101H2JDI7</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 7.67</div><div></div><div></div></div>
+                                </div>
+                                <!-- ITEM 29 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">14-In-1 Outdoor Emergency Survival Kit Camping Hiking Tactical Gear Case Set Box</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Homeln</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%231f2937'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>BOX</text></svg>"></div><span>default: default</span></div><div class="sku-col"><span>D0102H2QTMW</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">864</div><div style="text-align:center;">US$ 38.73</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 30 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Outdoor Waterproof Emergency Tube Tent Shelter Survival Tent For Two People</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Department Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23f97316'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fff7ed' text-anchor='middle' dominant-baseline='middle'>TENT</text></svg>"></div><span>Color: Orange</span></div><div class="sku-col"><span>D0101H2XHAW</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">9989</div><div style="text-align:center;">US$ 8.55</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 31 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Outdoor SOS Emergency Survival Kit Multifunctional Survival Tool Tactical Civil Air Defense Combat Readiness Emergency Kit</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Department Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23111827'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>BLK</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: Advanced black</span><span>Ships From: China</span></div></div><div class="sku-col"><span>D0101H2XHAA</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 37.64</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%2378716c'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fafaf9' text-anchor='middle' dominant-baseline='middle'>CP</text></svg>"></div><div style="display:flex; flex-direction:column; gap:4px;"><span>Color: CP</span><span>Ships From: China</span></div></div><div class="sku-col"><span>D0101H2XHPU</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 37.64</div><div></div><div></div></div>
+                                    <div class="show-all-row">Show all 4 variants ⌄</div>
+                                </div>
+                                <!-- ITEM 32 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">EVA First Aid Kit For Car Rescue; Family Backup; School ; Enterprise; Outdoors Travel</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Department Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23ef4444'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fee2e2' text-anchor='middle' dominant-baseline='middle'>RED</text></svg>"></div><span>Color: Red</span></div><div class="sku-col"><span>D0101H2H3UW</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">9999</div><div style="text-align:center;">US$ 17.66</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 33 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">Portable Compass With Ruler Scale For Scout Hiking Camping Boating; Orienteering Map; Professional Magnifying Compass</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Department Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23fb923c'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fff7ed' text-anchor='middle' dominant-baseline='middle'>COMP</text></svg>"></div><span>Color: Orange</span></div><div class="sku-col"><span>D0101H2H3QG</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 9.87</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 34 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">8x20 HD Night Vision Mini Pocket Zoom Monocular Outdoor Telescope for Hunting Camping Mountaineering Hike</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Department Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23374151'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>A</text></svg>"></div><span>Color: A</span></div><div class="sku-col"><span>D0101H2H39G</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 8.47</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23111827'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>B</text></svg>"></div><span>Color: B</span></div><div class="sku-col"><span>D0101H2H397</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">10000</div><div style="text-align:center;">US$ 9.48</div><div></div><div></div></div>
+                                </div>
+                                <!-- ITEM 35 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">1pc Portable Tungsten Ceramic Carbide Knife; Whetstone Sharpener; For Fish Hook; Pocket Tool For Outdoor Camping Hiking; Fishing</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: Department Store</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%234b5563'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>TOOL</text></svg>"></div><span>Color: Black</span></div><div class="sku-col"><span>D0101H2H3EU</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">9997</div><div style="text-align:center;">US$ 9.04</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 36 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">1-Person Waterproof Camping Dome Tent Outdoor Hiking Orange</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: inQ Boutique</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23f97316'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fff7ed' text-anchor='middle' dominant-baseline='middle'>TENT</text></svg>"></div><span>Color: as picture</span></div><div class="sku-col"><span>D0102HICI8G</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">254</div><div class="price-col" style="justify-content:center;">US$ 23.56 <span class="trend-icon">📈</span></div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 37 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">2-Person Waterproof Camping Dome Tent for Outdoor Hiking Survival Orange & Green</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: inQ Boutique</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%2322c55e'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f0fdf4' text-anchor='middle' dominant-baseline='middle'>TENT</text></svg>"></div><span>Color: as picture</span></div><div class="sku-col"><span>D0102HICI6W</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">69</div><div class="price-col" style="justify-content:center;">US$ 21.48 <span class="trend-icon">📈</span></div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 38 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">SMT PLUS</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: 3P EXPERTS</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%231f2937'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>BAG</text></svg>"></div><span>Color: BlackGold</span></div><div class="sku-col"><span>D0102HEQMZP</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">96</div><div style="text-align:center;">US$ 14.74</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%239ca3af'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23f9fafb' text-anchor='middle' dominant-baseline='middle'>BAG</text></svg>"></div><span>Color: Grey Gold</span></div><div class="sku-col"><span>D0102HEQMMT</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">96</div><div style="text-align:center;">US$ 14.74</div><div></div><div></div></div>
+                                    <div class="show-all-row">Show all 3 variants ⌄</div>
+                                </div>
+                                <!-- ITEM 39 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">What'd You Say? Sox 5 PACK</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: 3P EXPERTS</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23000000'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>SOX</text></svg>"></div><span>Size: Onesize</span></div><div class="sku-col"><span>D0102H5T2GP</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">200</div><div style="text-align:center;">US$ 14.74</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                                <!-- ITEM 40 -->
+                                <div class="product-group">
+                                    <div class="master-row"><input type="checkbox" class="master-checkbox"><div class="master-info"><div class="product-title">5 Mode Induction Headlamp</div><div class="product-tags"><span class="tag-pill">Camping</span><a href="#" class="tag-link">Edit</a> | <span>Supplier: 3P EXPERTS</span></div></div><a class="action-link">Actions ⌄</a></div>
+                                    <div class="variant-row"><div style="text-align:center;"><input type="checkbox"></div><div class="variant-product"><div class="variant-thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23374151'/><text x='50%' y='50%' font-family='sans-serif' font-size='9' font-weight='bold' fill='%23fcd34d' text-anchor='middle' dominant-baseline='middle'>LAMP</text></svg>"></div><span>Color: Black</span></div><div class="sku-col"><span>D0102H5703X</span><span class="dl-badge">Downloaded</span></div><div style="text-align:center;">3</div><div style="text-align:center;">US$ 25.27</div><div style="text-align:center;">US$ 0.00</div><div></div></div>
+                                </div>
+                            </div>
+
+                            <div class="pagination-container">
+                                <button class="page-btn" id="btn-prev" disabled>&lt;</button>
+                                <button class="page-btn active" id="btn-page-1">1</button>
+                                <button class="page-btn" id="btn-page-2">2</button>
+                                <button class="page-btn" id="btn-next">&gt;</button>
+                                <select class="select-outline page-select" style="min-width:90px; padding: 6px 24px 6px 12px;"><option>20 / page</option></select>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VIEW 2: DOWNLOAD CENTER                    -->
+                    <!-- ========================================== -->
+                    <div id="download-center-view" style="display: none;">
+                        
+                        <div class="dc-header-row">
+                            Downloaded: 0 / 2000 <span class="dc-info-icon">ⓘ</span>
+                        </div>
+
+                        <div class="dc-tips-box">
+                            <div class="dc-tips-title">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2v1"/><path d="M12 7a5 5 0 1 0 0 10v1"/></svg>
+                                Tips:
+                            </div>
+                            <ul class="dc-tips-list">
+                                <li>1. The monthly downloads are based on the natural month of PST time.</li>
+                                <li>2. We will keep records for one year, but only those applied within 30 days can be downloaded.</li>
+                                <li>3. The product data in the file is generated at the "application date" below. If you need the latest data, please apply again.</li>
+                            </ul>
+                        </div>
+
+                        <table class="dc-table">
+                            <thead>
+                                <tr>
+                                    <th class="dc-th">File Type</th>
+                                    <th class="dc-th">ID</th>
+                                    <th class="dc-th">Application Date</th>
+                                    <th class="dc-th">Products Included</th>
+                                    <th class="dc-th">Status</th>
+                                    <th class="dc-th">Action <span class="dc-refresh">↻ Refresh</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- DYNAMIC ROW -->
+                                <tr>
+                                    <td class="dc-td">Inventory & Price File</td>
+                                    <td class="dc-td">4870801</td>
+                                    <td class="dc-td" id="dc-dynamic-date">May 2, 2026 2:12:07 PM (PST)</td>
+                                    <td class="dc-td">40</td>
+                                    <td class="dc-td">Completed</td>
+                                    <td class="dc-td"><a class="dc-link action-download-csv">Download</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+                
+                <!-- Universal Footer inside content wrapper -->
+                <div class="footer-links">
+                    <a href="#">Terms of Use</a> | 
+                    <a href="#">Return & Refund Policy</a> | 
+                    <a href="#">Privacy Policy</a> | 
+                    <a href="#">Contact Us</a> | 
+                    <a href="#">Help Center</a> | 
+                    <a href="#">API</a>
+                    <span style="margin-left: 10px;">© 2026 Doba Inc. All Rights Reserved</span>
+                </div>
+            </div>
+        </div>
+    </div> <!-- End Main App Container -->
+
+    <!-- SAFETY HARBOR BANNER AT BOTTOM -->
+    <div class="simulation-banner">
+        ⚠️ TRAINING SIMULATION ONLY: This is a non-functional training environment created for educational purposes. It is not affiliated with Doba Inc. Do not enter real credentials.
+    </div>
+
+    <!-- SUPPORT CHAT WIDGET -->
+    <div class="support-widget">
+        <div class="support-bubble">
+            <div class="bubble-close">✕</div>
+            <div class="agent-avatar" style="font-size: 20px;">👩‍💻</div>
+            Welcome to Doba Support
+        </div>
+        <div class="chat-btn">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="white"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- DOWNLOAD MODAL -->
+    <div class="modal-overlay-bg" id="download-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Download Notes</h2>
+                <button class="modal-close-icon" id="modal-close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-row">
+                    <div class="modal-label">File Type</div>
+                    <div class="modal-input">
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="fileType" id="radio-feeds" checked>
+                                <span class="custom-radio"></span>
+                                Product Feeds File
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="fileType" id="radio-inventory">
+                                <span class="custom-radio"></span>
+                                Inventory & Price File
+                            </label>
+                        </div>
+                        <ul class="modal-bullets" id="modal-bullets-list">
+                            <li>This type will export all product information such as name, description, image, price, inventory, etc.</li>
+                            <li>Your account allows you to export product data up to 2000 SPU(s) per month.</li>
+                            <li>Exports Remaining this month: 2000.</li>
+                            <li>Current selected <span id="modal-selected-count">40</span> SPU(s).</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="modal-row" style="align-items: center;">
+                    <div class="modal-label">Markup Rate</div>
+                    <div class="modal-input" style="display:flex; align-items:center;">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="markup-toggle">
+                            <label for="markup-toggle"></label>
+                        </div>
+                        <span style="color:#666; font-size:15px; cursor:pointer; font-weight: 500;" title="Markup Rate Info">ⓘ</span>
+                    </div>
+                </div>
+
+                <div class="modal-row" style="align-items: center;">
+                    <div class="modal-label">Ship to</div>
+                    <div class="modal-input">
+                        <select class="select-outline" style="width: 100%;">
+                            <option>United States</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-row" style="align-items: center;">
+                    <div class="modal-label">Format</div>
+                    <div class="modal-input">
+                        <select class="select-outline" id="format-select" style="width: 100%;">
+                            <option>Products List (.csv)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" id="modal-cancel-btn">Cancel</button>
+                <button class="btn-primary" id="modal-download-now-btn" style="background: var(--doba-green);">Download Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- View Containers ---
+            const inventoryView = document.getElementById('inventory-view');
+            const downloadCenterView = document.getElementById('download-center-view');
+            const mainHeaderTitle = document.getElementById('main-header-title');
+            
+            // --- Navigation Links ---
+            const navInventoryLinks = document.querySelectorAll('.route-inventory');
+            const navDownloadCenter = document.getElementById('nav-download-center');
+            const navInventorySidebar = document.getElementById('nav-inventory');
+
+            const page1Content = document.getElementById('page-1-content');
+            const page2Content = document.getElementById('page-2-content');
+            const pageLoader = document.getElementById('page-loader');
+            const mainScrollArea = document.getElementById('main-scroll-area');
+            
+            const btnPage1 = document.getElementById('btn-page-1');
+            const btnPage2 = document.getElementById('btn-page-2');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+
+            // --- Toggle Filters Logic ---
+            const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
+            const extendedFilters = document.getElementById('extended-filters');
+
+            toggleFiltersBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (extendedFilters.style.display === 'none' || extendedFilters.style.display === '') {
+                    extendedFilters.style.display = 'flex';
+                    toggleFiltersBtn.textContent = 'Less Filters';
+                } else {
+                    extendedFilters.style.display = 'none';
+                    toggleFiltersBtn.textContent = 'More Filters';
+                }
+            });
+
+            // --- Selection UI Elements ---
+            const masterHeaderCheckbox = document.getElementById('master-header-checkbox');
+            const selectionStatus = document.getElementById('selection-status');
+            const globalSelectWrapper = document.getElementById('global-select-wrapper');
+            const globalSelectBtn = document.getElementById('global-select-btn');
+            const allMasterCheckboxes = document.querySelectorAll('.master-checkbox');
+            
+            // --- Modal Elements ---
+            const btnDownload = document.getElementById('btn-download');
+            const downloadModal = document.getElementById('download-modal');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+            const modalDownloadNowBtn = document.getElementById('modal-download-now-btn');
+            
+            // --- Dynamic Modal Nodes ---
+            const radioFeeds = document.getElementById('radio-feeds');
+            const radioInventory = document.getElementById('radio-inventory');
+            const modalBulletsList = document.getElementById('modal-bullets-list');
+            const formatSelect = document.getElementById('format-select');
+
+            // --- Download Center Dynamic Date ---
+            const dcDynamicDate = document.getElementById('dc-dynamic-date');
+
+            let isGlobalSelected = false;
+
+            // --- CSV Generator Function ---
+            function triggerCSVDownload() {
+                // Simulated CSV Data
+                const csvContent = "Item No.,Inventory,Price,Status\nD0102X3VMH8,100,16.00,Active\nD0102X3VMHA,100,16.00,Active\nD0102X3VMUG,100,16.00,Active\nD0102X3JS3V,158,14.64,Active\nD0101H2U12U,1000,5.90,Active\n";
+                
+                // Create a blob and trigger download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "US_Dropshipping_Inventory_Data_20260502_4870801.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // Bind to Download Center Table link
+            document.querySelectorAll('.action-download-csv').forEach(btn => {
+                btn.addEventListener('click', triggerCSVDownload);
+            });
+
+            // --- Date Formatter (PST formatting simulation) ---
+            function getFormattedPSTDate() {
+                const now = new Date();
+                const options = { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' };
+                return now.toLocaleDateString('en-US', options) + " (PST)";
+            }
+
+            // --- View Routing Logic ---
+            function showView(viewName) {
+                simulateLoad(() => {
+                    if (viewName === 'inventory') {
+                        inventoryView.style.display = 'block';
+                        downloadCenterView.style.display = 'none';
+                        mainHeaderTitle.innerHTML = 'Inventory List <span style="color:#999; font-weight:400; font-size:16px; margin-left:2px;">ⓘ</span>';
+                        
+                        navInventorySidebar.classList.add('active');
+                        navInventorySidebar.style.background = 'var(--doba-green)';
+                        
+                        navDownloadCenter.classList.remove('active');
+                        navDownloadCenter.style.background = 'transparent';
+                    } 
+                    else if (viewName === 'download-center') {
+                        inventoryView.style.display = 'none';
+                        downloadCenterView.style.display = 'block';
+                        mainHeaderTitle.innerHTML = 'Download Center <span style="color:#999; font-weight:400; font-size:16px; margin-left:2px;">ⓘ</span>';
+                        
+                        // Set the dynamic date when viewing
+                        dcDynamicDate.textContent = getFormattedPSTDate();
+
+                        navInventorySidebar.classList.remove('active');
+                        navInventorySidebar.style.background = 'transparent';
+                        
+                        navDownloadCenter.classList.add('active');
+                        navDownloadCenter.style.background = 'var(--doba-green)';
+                    }
+                });
+            }
+
+            navInventoryLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showView('inventory');
+                    // Reset to page 1 logic
+                    page1Content.style.display = 'block';
+                    page2Content.style.display = 'none';
+                    btnPage1.classList.add('active');
+                    btnPage2.classList.remove('active');
+                    btnPrev.disabled = true;
+                    btnNext.disabled = false;
+                    resetSelections();
+                });
+            });
+
+            navDownloadCenter.addEventListener('click', (e) => {
+                e.preventDefault();
+                showView('download-center');
+            });
+
+            // --- Modal Radio Update Logic ---
+            function updateModalContent() {
+                if (radioInventory.checked) {
+                    modalBulletsList.innerHTML = `
+                        <li>This type only exports Item No, inventory and all price related fields.</li>
+                        <li>You can export 10 times a day.</li>
+                        <li>Exports Remaining today: 10.</li>
+                    `;
+                    formatSelect.innerHTML = `<option>Inventory Feed (.csv)</option>`;
+                } else {
+                    let totalSelected = isGlobalSelected ? 40 : document.querySelectorAll('.master-checkbox:checked').length;
+                    modalBulletsList.innerHTML = `
+                        <li>This type will export all product information such as name, description, image, price, inventory, etc.</li>
+                        <li>Your account allows you to export product data up to 2000 SPU(s) per month.</li>
+                        <li>Exports Remaining this month: 2000.</li>
+                        <li>Current selected <span id="modal-selected-count">${totalSelected}</span> SPU(s).</li>
+                    `;
+                    formatSelect.innerHTML = `<option>Products List (.csv)</option>`;
+                }
+            }
+
+            radioFeeds.addEventListener('change', updateModalContent);
+            radioInventory.addEventListener('change', updateModalContent);
+
+            // --- Selection UI ---
+            globalSelectBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                isGlobalSelected = true;
+                allMasterCheckboxes.forEach(cb => cb.checked = true);
+                masterHeaderCheckbox.checked = true;
+                masterHeaderCheckbox.indeterminate = false;
+                selectionStatus.innerHTML = '<span style="color: #3b82f6; font-weight: 400;">40 Products Selected</span>';
+                globalSelectWrapper.style.display = 'none';
+            });
+
+            function updateSelectionUI() {
+                const activePageContent = (page1Content.style.display !== 'none') ? page1Content : page2Content;
+                const activeCheckboxes = activePageContent.querySelectorAll('.master-checkbox');
+                
+                let checkedCount = 0;
+                activeCheckboxes.forEach(cb => { if(cb.checked) checkedCount++; });
+
+                if (checkedCount === 0) {
+                    masterHeaderCheckbox.checked = false;
+                    masterHeaderCheckbox.indeterminate = false;
+                } else if (checkedCount === activeCheckboxes.length) {
+                    masterHeaderCheckbox.checked = true;
+                    masterHeaderCheckbox.indeterminate = false;
+                } else {
+                    masterHeaderCheckbox.checked = false;
+                    masterHeaderCheckbox.indeterminate = true;
+                }
+
+                if (checkedCount < activeCheckboxes.length) { isGlobalSelected = false; }
+
+                if (isGlobalSelected) {
+                    selectionStatus.style.display = 'inline-block';
+                    selectionStatus.innerHTML = '<span style="color: #3b82f6; font-weight: 400;">40 Products Selected</span>';
+                    globalSelectWrapper.style.display = 'none';
+                    return; 
+                }
+
+                if (checkedCount > 0) {
+                    selectionStatus.style.display = 'inline-block';
+                    selectionStatus.textContent = `${checkedCount} Product(s) Selected`; 
+                    if (checkedCount === activeCheckboxes.length) {
+                        globalSelectWrapper.style.display = 'block';
+                    } else {
+                        globalSelectWrapper.style.display = 'none';
+                    }
+                } else {
+                    selectionStatus.style.display = 'none';
+                    globalSelectWrapper.style.display = 'none';
+                }
+            }
+
+            masterHeaderCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                const activePageContent = (page1Content.style.display !== 'none') ? page1Content : page2Content;
+                const activeCheckboxes = activePageContent.querySelectorAll('.master-checkbox');
+                activeCheckboxes.forEach(cb => { cb.checked = isChecked; });
+                updateSelectionUI();
+            });
+
+            allMasterCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateSelectionUI);
+            });
+
+            function resetSelections() {
+                isGlobalSelected = false;
+                masterHeaderCheckbox.checked = false;
+                masterHeaderCheckbox.indeterminate = false;
+                allMasterCheckboxes.forEach(cb => cb.checked = false);
+                updateSelectionUI();
+            }
+
+            // --- Modal Open/Close ---
+            btnDownload.addEventListener('click', () => {
+                let totalSelected = isGlobalSelected ? 40 : document.querySelectorAll('.master-checkbox:checked').length;
+                if (totalSelected === 0) {
+                    alert("Please select at least one product before downloading.");
+                    return;
+                }
+                
+                // Reset radio to default state when opening
+                radioFeeds.checked = true;
+                updateModalContent();
+                
+                // Set the exact number into the dom if feeds is selected
+                const modalSpan = document.getElementById('modal-selected-count');
+                if(modalSpan) modalSpan.textContent = totalSelected;
+                
+                downloadModal.style.display = 'flex';
+            });
+
+            const closeDownloadModal = () => {
+                downloadModal.style.display = 'none';
+            };
+
+            modalCloseBtn.addEventListener('click', closeDownloadModal);
+            modalCancelBtn.addEventListener('click', closeDownloadModal);
+            
+            modalDownloadNowBtn.addEventListener('click', () => {
+                triggerCSVDownload(); // Initiate actual file download
+                closeDownloadModal();
+                
+                // Update the date in Download Center so it's fresh when they go look
+                dcDynamicDate.textContent = getFormattedPSTDate();
+            });
+
+            function simulateLoad(callback) {
+                pageLoader.style.display = 'flex'; 
+                setTimeout(() => {
+                    callback();
+                    mainScrollArea.scrollTop = 0; 
+                    pageLoader.style.display = 'none'; 
+                }, 350); 
+            }
+
+            function goToPage(pageNumber) {
+                simulateLoad(() => {
+                    resetSelections();
+                    if (pageNumber === 1) {
+                        page1Content.style.display = 'block';
+                        page2Content.style.display = 'none';
+                        btnPage1.classList.add('active');
+                        btnPage2.classList.remove('active');
+                        btnPrev.disabled = true;
+                        btnNext.disabled = false;
+                    } else if (pageNumber === 2) {
+                        page1Content.style.display = 'none';
+                        page2Content.style.display = 'block';
+                        btnPage1.classList.remove('active');
+                        btnPage2.classList.add('active');
+                        btnPrev.disabled = false;
+                        btnNext.disabled = false; 
+                    }
+                });
+            }
+
+            btnPage1.addEventListener('click', () => { if (!btnPage1.classList.contains('active')) goToPage(1); });
+            btnPage2.addEventListener('click', () => { if (!btnPage2.classList.contains('active')) goToPage(2); });
+            btnPrev.addEventListener('click', () => { if (btnPage2.classList.contains('active')) goToPage(1); });
+            btnNext.addEventListener('click', () => { if (btnPage1.classList.contains('active')) goToPage(2); });
+        });
+    </script>
+
+</body>
+</html>

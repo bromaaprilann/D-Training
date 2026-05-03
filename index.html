@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Doba | Pilot Training Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --doba-green: #00b929;
+            --doba-hover-green: #009922;
+            --doba-dark-bg: #0b0c10;
+            --doba-dashboard-bg: #f5f6f8;
+            --text-main: #333333;
+            --text-on-dark: #FFFFFF;
+            --border-color: #e5e7eb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        body { height: 100vh; width: 100vw; overflow-x: hidden; display: flex; flex-direction: column; background-color: var(--doba-dashboard-bg); color: var(--text-main); margin: 0; }
+
+        /* --- GLOBAL SAFETY HARBOR --- */
+        .simulation-banner { background-color: #ef4444; color: #ffffff; text-align: center; padding: 8px 16px; font-size: 13px; font-weight: 600; position: fixed; bottom: 0; left: 0; right: 0; z-index: 10000; }
+
+        /* --- OVERLAY LOADER --- */
+        .simulation-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.95); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f4f6; border-top: 4px solid var(--doba-green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- FOOLPROOF VIEW MANAGEMENT --- */
+        .page-view { display: none !important; width: 100%; flex: 1; flex-direction: column; overflow-y: auto; padding-bottom: 60px; }
+        .page-view.active-view { display: flex !important; }
+
+        /* --- LOGO --- */
+        .doba-logo { font-weight: 800; font-size: 28px; color: var(--text-main); display: flex; align-items: center; gap: 8px; text-decoration: none; letter-spacing: -1px; cursor: pointer; }
+        .doba-logo-icon { width: 28px; height: 28px; background: #fff; border: 2px solid var(--text-main); border-radius: 6px; position: relative; display: inline-block; }
+        .doba-logo-icon::after { content: ''; position: absolute; top: 4px; left: 4px; width: 10px; height: 10px; background: var(--doba-green); border-radius: 50%; }
+
+        .btn-green { background-color: var(--doba-green); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; padding: 10px 24px; border-radius: 20px; font-weight: 600; font-size: 14px; text-decoration: none; cursor: pointer; border: none; transition: background 0.2s; }
+        .btn-green:hover { background-color: var(--doba-hover-green); }
+
+        /* =======================================================
+           VIEW 1: SPLASH PAGE
+           ======================================================= */
+        #main-splash { background-color: var(--doba-dark-bg); background: radial-gradient(circle at 100% 50%, rgba(39, 174, 96, 0.15) 0%, rgba(11, 12, 16, 1) 40%), radial-gradient(circle at 0% 10%, rgba(139, 92, 246, 0.1) 0%, rgba(11, 12, 16, 1) 30%); color: #FFFFFF; }
+        .splash-pilot-banner { background: linear-gradient(90deg, #8B5CF6 0%, #a855f7 50%, #8B5CF6 100%); width: 100%; text-align: center; padding: 8px 15px; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .splash-pilot-banner button { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.5); padding: 2px 12px; font-size: 12px; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        .splash-header { width: 100%; max-width: 1400px; margin: 0 auto; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .splash-header .doba-logo { color: #fff; }
+        .splash-header .doba-logo-icon { border-color: #fff; }
+        .splash-nav { display: flex; gap: 28px; font-size: 14px; font-weight: 500; align-items: center; }
+        .splash-nav a { color: #d1d5db; text-decoration: none; }
+        .splash-actions { display: flex; gap: 20px; align-items: center; }
+        .login-trigger { color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; }
+        
+        .splash-main { flex: 1; display: flex; flex-direction: column; padding: 60px 40px; }
+        .splash-hero-container { display: flex; align-items: center; justify-content: space-between; gap: 60px; max-width: 1400px; margin: 0 auto; width: 100%; }
+        .hero-left h1 { font-size: 52px; font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 30px; }
+        .splash-input-group { display: flex; background: #fff; border-radius: 30px; padding: 4px; width: 100%; max-width: 480px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .splash-input-group input { flex: 1; padding: 15px 20px; border: none; border-radius: 30px; outline: none; font-size: 15px; color: #111; }
+        .splash-input-group button { border-radius: 30px; font-size: 15px; padding: 0 30px; box-shadow: 0 2px 10px rgba(0, 185, 41, 0.3); }
+
+        .hero-right { flex: 1; display: flex; justify-content: center; align-items: center; }
+        .mock-graphic-bg { width: 380px; height: 380px; background: #fff; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #ccc; }
+
+        /* =======================================================
+           VIEW 2: LOGIN PAGE 
+           ======================================================= */
+        #login-page { background-color: #FFFFFF; }
+        .login-header-wrapper { width: 100%; padding: 20px 40px; }
+        .login-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; min-height: 600px; }
+        .login-container { width: 100%; max-width: 400px; }
+        .login-title { font-size: 32px; font-weight: 700; color: #004b23; margin-bottom: 24px; text-align: center; letter-spacing: -0.5px;}
+        .social-login { display: flex; gap: 12px; margin-bottom: 20px; }
+        .social-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); padding: 10px 0; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; color: #333; background: #fff; }
+        .divider { display: flex; align-items: center; text-align: center; color: #999; font-size: 12px; margin-bottom: 24px; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #eee; }
+        .divider::before { margin-right: 10px; }
+        .divider::after { margin-left: 10px; }
+        .login-form-group { margin-bottom: 16px; }
+        .login-input { width: 100%; padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 14px; outline: none; transition: border 0.2s; }
+        .login-input:focus { border-color: var(--doba-green); }
+        .password-help { text-align: right; margin-bottom: 24px; }
+        .password-help a { color: #2563eb; font-size: 12px; text-decoration: none; }
+        .btn-login-submit { width: 100%; background-color: #008000; color: #fff; font-weight: 600; padding: 12px; border: none; border-radius: 4px; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+        .btn-login-submit:hover { background-color: #006400; }
+        .create-account { text-align: center; margin-top: 24px; font-size: 13px; color: #333; }
+        .create-account a { color: #2563eb; text-decoration: none; }
+        .simulation-hint { margin-top: 20px; background: #f0fdf4; border: 1px dashed #bbf7d0; padding: 12px; font-size: 12px; color: #166534; text-align: center; border-radius: 4px; }
+        .simulation-hint code { font-weight: 700; background: #fff; padding: 2px 4px; border-radius: 2px; }
+        .login-footer { text-align: center; padding: 20px; font-size: 12px; color: #999; margin-top: auto; border-top: 1px solid #fff; }
+
+        /* =======================================================
+           SHARED HEADER CLASSES
+           ======================================================= */
+        .top-utility-bar { background: #f9fafb; width: 100%; padding: 6px 30px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+        .top-utility-links { display: flex; gap: 24px; margin-left: auto; }
+        .top-utility-links a { color: #666; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+        .ai-hub-text { color: var(--doba-green) !important; font-weight: 600; }
+        
+        .dashboard-header { width: 100%; background: #FFFFFF; padding: 16px 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; }
+        .search-wrapper { flex: 1; display: flex; padding: 0 40px; max-width: 800px; }
+        .search-container { width: 100%; display: flex; align-items: center; background: #fff; border: 1.5px solid var(--doba-green); border-radius: 30px; padding-left: 16px; overflow: hidden; height: 42px; }
+        .search-container input { flex: 1; border: none; background: transparent; padding: 9px 0; font-size: 13px; outline: none; color: #333; height: 100%; }
+        .search-container input::placeholder { color: #9ca3af; }
+        .search-icon-group { display: flex; align-items: center; gap: 12px; padding-right: 12px; }
+        .clear-search-icon { color: #ccc; font-size: 16px; cursor: pointer; }
+        .camera-search-icon { color: #666; font-size: 16px; cursor: pointer; }
+        .search-btn { background: var(--doba-green); border: none; color: #fff; padding: 0 24px; height: 38px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-right: -1px; }
+        
+        .dash-actions { display: flex; align-items: center; gap: 20px; }
+        .curated-link { font-size: 13px; color: #333; font-weight: 500; display: flex; align-items: center; gap: 4px; cursor: pointer; position: relative; }
+        .red-dot { width: 6px; height: 6px; background: #ef4444; border-radius: 50%; position: absolute; top: -2px; right: -6px; }
+        .icon-btn { position: relative; font-size: 18px; cursor: pointer; color: #555; }
+        .cart-badge { position: absolute; top: -6px; right: -8px; background: #f3f4f6; color: #666; font-size: 10px; padding: 2px 5px; border-radius: 10px; font-weight: 600; border: 1px solid var(--border-color); }
+
+        .user-profile { position: relative; display: flex; align-items: center; gap: 10px; cursor: pointer; border-left: 1px solid var(--border-color); padding: 10px 0 10px 20px; }
+        .user-info { line-height: 1.2; }
+        .user-info strong { font-size: 13px; color: #111; display: flex; align-items: center; gap: 4px; font-weight: 600; }
+        .profile-dropdown { position: absolute; top: 100%; right: -10px; background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 4px; width: 180px; display: none; flex-direction: column; z-index: 1000; padding: 8px 0; margin-top: 0; }
+        .profile-dropdown::before { content: ''; position: absolute; top: -15px; left: 0; right: 0; height: 15px; }
+        .user-profile:hover .profile-dropdown { display: flex; }
+        .dropdown-item { padding: 12px 20px; font-size: 14px; color: #333; text-decoration: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
+        .dropdown-item:hover { background-color: #f9fafb; color: var(--doba-green); }
+        .dropdown-dashed { border-top: 1px dashed #d1d5db; margin: 6px 20px; }
+        .dropdown-solid { border-top: 1px solid #e5e7eb; margin: 6px 0 0 0; }
+
+        .dashboard-nav { width: 100%; background: #FFFFFF; padding: 0 30px; display: flex; align-items: center; gap: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); z-index: 90; position: relative;}
+        .nav-item { padding: 16px 0; color: #333; text-decoration: none; font-size: 13px; font-weight: 600; border-bottom: 2px solid transparent; position: relative; cursor: pointer; }
+        .nav-item:hover { color: var(--doba-green); }
+        .nav-item.active { color: #111; border-bottom: 2px solid #111; }
+        .nav-badge { position: absolute; top: 4px; right: -24px; background: #ef4444; color: #fff; font-size: 8px; padding: 2px 4px; border-radius: 2px; font-weight: bold; }
+        .doba-pilot-logo { margin-left: auto; color: #3b82f6; font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+
+        /* =======================================================
+           VIEW 3: DASHBOARD MAIN CONTENT
+           ======================================================= */
+        .dash-layout { display: flex; flex: 1; padding: 24px 30px; gap: 24px; max-width: 1600px; margin: 0 auto; width: 100%; }
+        .dash-sidebar { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; border-radius: 8px; border: 1px solid #f0f0f0; background: #fff;}
+        .sidebar-cat { padding: 14px 10px 14px 20px; font-size: 13px; color: #555; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid transparent; }
+        .sidebar-cat:hover { color: var(--doba-green); }
+        .sidebar-cat.active { color: var(--doba-green); font-weight: 600; border-left: 3px solid var(--doba-green); padding-left: 17px; background: #f0fdf4; }
+        .sidebar-cat::after { content: '›'; color: #ccc; font-size: 16px; }
+        .dash-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .main-promo { background: linear-gradient(to bottom right, #e0f2fe, #dcfce7); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 380px; text-align: center; position: relative; }
+        .promo-text { z-index: 10; margin-top: -40px; }
+        .promo-text h2 { font-size: 42px; font-weight: 800; color: #ea580c; margin-bottom: 10px; letter-spacing: -1px; text-shadow: 1px 1px 0px #fff; }
+        .promo-text h2 span { color: #65a30d; }
+        .promo-text p { font-size: 18px; font-weight: 700; color: #166534; margin-bottom: 24px; }
+        .btn-sell { background: #1d4ed8; color: #fff; padding: 12px 36px; border-radius: 30px; font-weight: 800; font-size: 14px; border: none; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; z-index: 10; }
+        .dash-right-sidebar { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; }
+        .profile-widget { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: 8px; border: 1px solid #f0f0f0; overflow: hidden;}
+        .widget-header { background: #f0fdf4; padding: 20px; text-align: center; border-bottom: 1px solid #e5e7eb; }
+        .widget-header h3 { font-size: 15px; font-weight: 700; color: #111; margin: 0;}
+        .widget-actions { display: flex; justify-content: space-around; padding: 20px 10px; border-bottom: 1px solid #f9fafb; }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; color: #555; cursor: pointer; text-decoration: none; }
+        .action-item .circle { width: 36px; height: 36px; border-radius: 50%; background: #f9fafb; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: border-color 0.2s; }
+        .action-item:hover .circle { border-color: var(--doba-green); }
+        .help-center { padding: 20px; }
+        .help-center h4 { font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: #111; }
+        .help-center h4 a { font-size: 12px; color: #999; text-decoration: none; font-weight: 400; }
+        .help-center ul { list-style: none; display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0;}
+        .help-center li { font-size: 12px; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+
+        /* =======================================================
+           VIEW 4: PRODUCT DETAIL PAGE (PDP)
+           ======================================================= */
+        .pdp-wrapper { width: 100%; max-width: 1400px; margin: 0 auto; padding: 24px 30px; display: flex; flex-direction: column; }
+        .pdp-breadcrumbs { font-size: 12px; color: #888; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+        .pdp-breadcrumbs a { color: #888; text-decoration: none; cursor: pointer; }
+        .pdp-breadcrumbs a:hover { color: var(--doba-green); text-decoration: underline;}
+        .pdp-breadcrumbs span { color: #ccc; }
+        .pdp-content-box { display: flex; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); gap: 50px; border: 1px solid #f0f0f0;}
+        .pdp-left-col { width: 450px; flex-shrink: 0; }
+        .pdp-main-img-box { width: 100%; height: 450px; background-color: #a4c9db; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: #fff; border-radius: 4px; }
+        .pdp-right-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .pdp-product-title { font-size: 24px; font-weight: 600; color: #111; margin: 0 0 16px 0; line-height: 1.3;}
+        .pdp-supplier-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid #f0f0f0; margin-bottom: 16px; font-size: 13px; color: #666; }
+        .pdp-supplier-link { color: #666; text-decoration: underline; cursor: pointer; }
+        .pdp-item-no { display: flex; align-items: center; gap: 6px; }
+        .pdp-item-no span { background: #3b82f6; color: #fff; padding: 2px 6px; font-weight: 600; font-size: 12px; border-radius: 2px;}
+        .pdp-pricing { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; }
+        .pdp-price-main { font-size: 32px; font-weight: 700; color: #111; }
+        .pdp-price-msrp { font-size: 13px; color: #999; text-decoration: line-through;}
+        .pdp-pickup-banner { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 13px; }
+        .pdp-pickup-banner strong { color: #111; font-weight: 700; }
+        .pdp-pickup-link { color: #2563eb; text-decoration: none; cursor: pointer; }
+        .pdp-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; border-bottom: 1px solid #f0f0f0; padding-bottom: 32px; }
+        .pdp-btn-action { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #e5e7eb; background: #fff; padding: 10px; border-radius: 4px; font-size: 13px; font-weight: 500; color: #333; cursor: pointer; transition: background 0.2s; text-decoration: none; }
+        .pdp-btn-action:hover { background: #f9fafb; border-color: #d1d5db; }
+        .pdp-btn-blue-text { color: #2563eb; font-weight: 600; }
+        .pdp-variant-row { display: flex; margin-bottom: 24px; }
+        .pdp-variant-label { width: 80px; font-size: 13px; color: #666; padding-top: 8px; flex-shrink: 0;}
+        .pdp-swatches { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; }
+        .pdp-swatch { border: 1px solid #ccc; padding: 6px 12px; font-size: 13px; color: #333; cursor: pointer; background: #fff; border-radius: 2px;}
+        .pdp-swatch.active { border: 1px solid #111; font-weight: 600; color: #111; }
+        .pdp-swatch.no-border { border: none; background: transparent; padding-left: 4px; font-weight: 500;}
+        .pdp-view-all { font-size: 13px; color: #666; cursor: pointer; display: inline-block; margin-bottom: 24px; margin-left: 80px; }
+        .pdp-view-all:hover { color: var(--doba-green); text-decoration: underline;}
+        .pdp-info-row { display: flex; align-items: center; margin-bottom: 16px; font-size: 13px; }
+        .pdp-info-label { width: 80px; color: #666; flex-shrink: 0; }
+        .pdp-info-value { color: #111; }
+
+        /* =======================================================
+           VIEW 5: SHOPPING CART
+           ======================================================= */
+        #cart-view { background-color: #FFFFFF; }
+        .cart-wrapper { width: 100%; max-width: 1400px; margin: 0 auto; padding: 24px 30px; display: flex; flex-direction: column; }
+        .cart-title { font-size: 20px; font-weight: 600; color: #111; margin-bottom: 20px; }
+        .cart-box { border: 1px solid #eee; border-radius: 4px; padding: 20px; margin-bottom: 40px; }
+        .cart-header-row { display: flex; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 13px; color: #666; }
+        .cart-item-row { display: flex; align-items: center; padding: 20px 0; border-bottom: 1px solid #eee; }
+        .cart-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: var(--doba-green); margin-right: 20px; }
+        .cart-thumb { width: 80px; height: 80px; background: #a4c9db; border-radius: 4px; margin-right: 20px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: bold; }
+        .qty-box { display: flex; align-items: center; border: 1px solid #ccc; width: 90px; border-radius: 2px; overflow: hidden; margin-top: 10px; }
+        .qty-label { padding: 4px 8px; font-size: 12px; color: #666; background: #f9f9f9; border-right: 1px solid #ccc; }
+        .qty-input { width: 100%; border: none; outline: none; padding: 4px; font-size: 13px; font-weight: 600; text-align: center; }
+        .cart-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; }
+
+        /* =======================================================
+           VIEW 6: ORDER REVIEW (CHECKOUT)
+           ======================================================= */
+        #checkout-view { background-color: var(--doba-dashboard-bg); }
+        .checkout-wrapper { width: 100%; max-width: 1200px; margin: 0 auto; padding: 30px; display: flex; gap: 24px; align-items: flex-start; }
+        .checkout-left { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .checkout-box { background: #fff; border-radius: 4px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .checkout-box-title { font-size: 16px; font-weight: 600; color: #111; margin-bottom: 6px; }
+        .checkout-add-address { font-size: 13px; color: #3b82f6; text-decoration: none; cursor: pointer; font-weight: 500; }
+        .checkout-add-address:hover { text-decoration: underline; }
+        .checkout-supplier { font-size: 13px; color: #666; padding-bottom: 12px; border-bottom: 1px solid #eee; margin-top: 20px; display: flex; justify-content: space-between; }
+        .protection-row { background: #f0fdf4; padding: 12px; font-size: 13px; color: #111; display: flex; align-items: center; gap: 10px; border-radius: 4px; margin-top: 15px; }
+        .checkout-item-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        .checkout-item-table th { text-align: left; padding: 10px 0; font-size: 12px; color: #666; border-bottom: 1px solid #eee; font-weight: 500; }
+        .checkout-item-table td { padding: 15px 0; font-size: 13px; color: #111; border-bottom: 1px solid #eee; vertical-align: top;}
+        .checkout-store-info { margin-top: 20px; display: flex; gap: 20px; }
+        .store-info-col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .store-info-label { font-size: 12px; color: #111; font-weight: 600; }
+        .store-info-input { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none; }
+
+        .checkout-right { width: 320px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; }
+        .summary-row { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 12px; }
+        .summary-total { display: flex; justify-content: space-between; font-size: 15px; color: #111; font-weight: 700; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; margin-bottom: 20px;}
+        .profile-complete-box { background: #fffaf0; border: 1px solid #ffedd5; padding: 16px; border-radius: 4px; font-size: 12px; color: #555; }
+        .profile-complete-box h4 { font-size: 13px; color: #ea580c; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px; }
+        .profile-complete-box a { color: #2563eb; text-decoration: none; margin-top: 10px; display: inline-block; font-weight: 500; }
+
+        /* =======================================================
+           MODALS (ADD TO CART & ADD ADDRESS)
+           ======================================================= */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 3000; display: none; align-items: center; justify-content: center; }
+        
+        .cart-modal-container { background: #fff; border-radius: 4px; width: 600px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .related-item { width: 90px; display: flex; flex-direction: column; gap: 6px; }
+        .related-thumb { width: 90px; height: 90px; background: #f3f4f6; border-radius: 4px; }
+
+        .address-modal-container { background: #fff; border-radius: 4px; width: 650px; max-width: 95vw; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+        .address-modal-header { padding: 16px 24px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; color: #111; }
+        .address-modal-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .address-form-group { display: flex; flex-direction: column; gap: 8px; }
+        .address-form-group.full-width { grid-column: span 2; }
+        .address-label { font-size: 13px; color: #333; }
+        .address-input { padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none; transition: border 0.2s; }
+        .address-input:focus { border-color: var(--doba-green); }
+        
+        .phone-input-wrapper { display: flex; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; }
+        .phone-prefix { background: #f9fafb; padding: 10px 12px; font-size: 13px; color: #555; border-right: 1px solid #ccc; }
+        .phone-input-wrapper input { flex: 1; border: none; padding: 10px 12px; font-size: 13px; outline: none; }
+        
+        .address-modal-footer { padding: 16px 24px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 12px; }
+
+        .custom-select-wrapper { position: relative; width: 100%; user-select: none; }
+        .custom-select-trigger { padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; }
+        .custom-select-trigger:hover { border-color: var(--doba-green); }
+        .custom-select-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 4px; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; flex-direction: column; }
+        .custom-select-dropdown.open { display: flex; }
+        
+        .country-tabs { display: flex; border-bottom: 1px solid #eee; }
+        .country-tab { flex: 1; padding: 12px 0; text-align: center; font-size: 13px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; }
+        .country-tab.active { color: #111; border-bottom: 2px solid var(--doba-green); font-weight: 500; }
+        
+        .country-list { display: flex; flex-direction: column; padding: 8px 0; max-height: 200px; overflow-y: auto; }
+        .country-option { padding: 10px 16px; font-size: 13px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .country-option:hover { background: #f9fafb; }
+        .country-option.active { background: #f0fdf4; color: var(--doba-green); font-weight: 500; }
+
+        /* Custom Back Button */
+        #global-back-btn { cursor: pointer; color: var(--doba-green); font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+        #global-back-btn:hover { color: var(--doba-hover-green); }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY LOADER -->
+    <div id="simulation-status" class="simulation-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- =======================================================
+         VIEW 1: SPLASH PAGE
+         ======================================================= -->
+    <div id="main-splash" class="page-view active-view">
+        <div class="splash-pilot-banner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
+            Doba Pilot is LIVE! <span>Save 50%+ with Early Bird Pricing!</span>
+            <button>Get it Now!</button>
+        </div>
+        <header class="splash-header">
+            <a class="doba-logo"><div class="doba-logo-icon"></div> doba</a>
+            <nav class="splash-nav">
+                <a href="#">Why Doba ⌄</a>
+                <a href="#">Integrations ⌄</a>
+                <a href="#">Resources ⌄</a>
+                <a href="#" style="color: #a855f7; display:flex; align-items:center; gap:4px; font-weight:700;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
+                    Doba Pilot
+                </a>
+                <a href="#">Pricing</a>
+            </nav>
+            <div class="splash-actions">
+                <a class="login-trigger splash-to-login">Login</a>
+                <button class="btn btn-green splash-to-login">Get Started</button>
+            </div>
+        </header>
+
+        <div class="splash-subnav" style="width: 100%; max-width: 1400px; margin: 0 auto; padding: 15px 40px; display: flex; align-items: center; gap: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; font-weight: 500;">
+            <a href="#" style="color: var(--doba-green); text-decoration: none;">AI Pickr <span style="background: #ef4444; color: #fff; font-size: 9px; padding: 2px 4px; border-radius: 2px; margin-left:4px;">NEW</span></a>
+            <a href="#" style="color: #9ca3af; text-decoration: none;">TikTok Shop Selections</a>
+            <a href="#" style="color: #9ca3af; text-decoration: none;">TEMU Selections</a>
+            <a href="#" style="color: #9ca3af; text-decoration: none;">Video Hub <span style="background: #ef4444; color: #fff; font-size: 9px; padding: 2px 4px; border-radius: 2px; margin-left:4px;">NEW</span></a>
+            <a href="#" style="color: #9ca3af; text-decoration: none;">Top Ranking</a>
+            <a href="#" style="color: #9ca3af; text-decoration: none;">High Profit</a>
+            <a href="#" style="color: #9ca3af; text-decoration: none;">More ⌄</a>
+        </div>
+
+        <main class="splash-main">
+            <div class="splash-hero-container">
+                <div class="hero-left">
+                    <h1>Build Your Dream<br>Business with Doba<br>AI-Powered Dropshipping</h1>
+                    <div class="splash-input-group">
+                        <input type="email" placeholder="Enter Your Email">
+                        <button class="btn btn-green splash-to-login">Start AI Dropshipping →</button>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <div class="mock-graphic-bg">Image / Video Placeholder</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- =======================================================
+         VIEW 2: LOGIN PAGE 
+         ======================================================= -->
+    <div id="login-page" class="page-view">
+        <header class="login-header-wrapper">
+            <a class="login-logo nav-splash">
+                <div class="login-logo-icon"></div> doba
+            </a>
+        </header>
+        <main class="login-wrapper">
+            <div class="login-container">
+                <h1 class="login-title">Welcome Back!</h1>
+                
+                <div class="social-login">
+                    <div class="social-btn"><span style="color:#4285F4; font-weight:bold; font-size:16px;">G</span> Google</div>
+                    <div class="social-btn"><span style="color:#1877F2; font-weight:bold; font-size:16px;">f</span> Facebook</div>
+                    <div class="social-btn"><span style="color:#000; font-weight:bold; font-size:16px;"></span> Apple</div>
+                </div>
+                
+                <div class="divider">Or</div>
+
+                <form id="login-form">
+                    <div class="login-form-group">
+                        <input type="text" id="username" class="login-input" placeholder="* Email Address" value="trainee" required>
+                    </div>
+                    <div class="login-form-group" style="margin-bottom: 8px;">
+                        <input type="password" id="password" class="login-input" placeholder="* Password" value="pilot2026" required>
+                    </div>
+                    
+                    <div class="password-help">
+                        <a href="#">Password Help?</a>
+                    </div>
+
+                    <button type="submit" class="btn-login-submit">Log in</button>
+                    
+                    <div class="simulation-hint">
+                        <strong>Training Credentials:</strong> Email: <code>trainee</code> | Pass: <code>pilot2026</code>
+                    </div>
+                </form>
+            </div>
+        </main>
+        <footer class="login-footer">© 2026 Focus Technology Co., Ltd. All Rights Reserved</footer>
+    </div>
+
+    <!-- =======================================================
+         SHARED HEADER FOR DASHBOARD, PDP, CART, AND CHECKOUT
+         ======================================================= -->
+    <div id="shared-header" style="display: none; flex-direction: column;">
+        <div class="top-utility-bar">
+            <!-- GLOBAL BACK BUTTON -->
+            <div id="global-back-btn" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Back
+            </div>
+            
+            <div class="top-utility-links">
+                <a href="#" class="ai-hub-text">AI Hub ✨</a>
+                <a href="#">Why Doba ⌄</a>
+                <a href="#">Integrations ⌄</a>
+                <a href="#">Pricing</a>
+                <a href="#">Resources ⌄</a>
+            </div>
+        </div>
+        
+        <header class="dashboard-header">
+            <a class="dash-logo-link nav-dashboard">
+                <div class="dash-logo-icon"></div> doba 
+            </a>
+            
+            <div class="search-wrapper">
+                <div class="search-container">
+                    <input type="text" id="global-search-input" placeholder="Search Dropshipping Products to Sell">
+                    <div class="search-icon-group">
+                        <span class="clear-search-icon" onclick="document.getElementById('global-search-input').value=''">⊗</span>
+                        <span class="camera-search-icon">📷</span>
+                    </div>
+                    <button class="search-btn" id="global-search-btn">🔍</button>
+                </div>
+            </div>
+
+            <div class="dash-actions">
+                <div class="curated-link">Curated List <span class="red-dot"></span></div>
+                <div class="icon-btn">🔔<span class="cart-badge" style="right:-4px;">0</span></div>
+                <div class="icon-btn nav-cart">🛒<span class="cart-badge" id="header-cart-badge" style="right:-4px;">0</span></div>
+                
+                <div class="user-profile">
+                    <div class="avatar-img" style="background: #f3f4f6; color: #4b2b6d; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">👤</div>
+                    <div class="user-info">
+                        <strong>Trainee <span style="color:#3b82f6; font-size:14px; margin-left: 4px;">💎</span> <span style="font-size: 11px; color: #111; margin-left: 4px;">⌄</span></strong>
+                        <span>Retailer ID is 8997811</span>
+                    </div>
+                    <div class="profile-dropdown">
+                        <a href="#" class="dropdown-item nav-dashboard">My Doba</a>
+                        <a href="inventory.html" class="dropdown-item">Inventory List</a>
+                        <a href="#" class="dropdown-item">Saved Searches</a>
+                        <div class="dropdown-dashed"></div>
+                        <a href="inventory.html" class="dropdown-item">Store Orders</a>
+                        <div class="dropdown-solid"></div>
+                        <a href="#" class="dropdown-item nav-login">Log Out</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <nav class="dashboard-nav">
+            <a href="#" class="nav-item">All Products</a>
+            <a href="#" class="nav-item" style="color: #3b82f6;">AI Pickr <span class="nav-badge">NEW</span></a>
+            <a href="#" class="nav-item">TikTok Shop Selections</a>
+            <a href="#" class="nav-item">TEMU Selections</a>
+            <a href="#" class="nav-item">Video Hub <span class="nav-badge">NEW</span></a>
+            <a href="#" class="nav-item">Top Ranking</a>
+            <a href="#" class="nav-item">High Profit</a>
+            <a href="#" class="nav-item">New Arrivals</a>
+            <a href="#" class="nav-item">More ⌄</a>
+            <div class="doba-pilot-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>Doba Pilot</div>
+        </nav>
+    </div>
+
+    <!-- =======================================================
+         VIEW 3: DASHBOARD PAGE
+         ======================================================= -->
+    <div id="dashboard" class="page-view">
+        <main class="dash-layout">
+            <aside class="dash-sidebar">
+                <div class="sidebar-cat active">Home, Garden & Tools</div><div class="sidebar-cat">Beauty & Health</div><div class="sidebar-cat">Outdoor</div><div class="sidebar-cat">Clothing, Shoes & Jewelry</div><div class="sidebar-cat">Toys, Kids & Baby</div><div class="sidebar-cat">Sports</div><div class="sidebar-cat">Pets</div><div class="sidebar-cat">Electronics</div><div class="sidebar-cat">Computers, Office Supplies</div><div class="sidebar-cat" style="border-bottom: none;">All Categories</div>
+            </aside>
+
+            <section class="dash-content">
+                <div class="main-promo">
+                    <div class="promo-text">
+                        <h2><span>HAPPY</span> Pets, <span>HAPPY</span> Home</h2>
+                        <p>Pet Supplies Your Customers Will Love, <span>NOW ON SALE!</span></p>
+                        <button class="btn-sell">SELL NOW</button>
+                    </div>
+                    <div style="position: absolute; bottom: -20px; width: 100%; height: 140px; background: #4ade80; filter: blur(5px); z-index: 1;"></div>
+                    <div style="position: absolute; bottom: 10px; font-size: 80px; z-index: 2; display: flex; gap: 10px;">🐶 🐱 🐰 🐹 🐕</div>
+                </div>
+            </section>
+
+            <aside class="dash-right-sidebar">
+                <div class="profile-widget">
+                    <div class="widget-header">
+                        <h3>Hi, Trainee</h3>
+                    </div>
+                    <div class="widget-actions">
+                        <a href="#" class="action-item nav-dashboard" style="text-decoration:none;"><div class="circle">👤</div>My Doba</a>
+                        <a href="inventory.html" class="action-item" style="text-decoration:none;"><div class="circle">🔄</div>Updates</a>
+                        <a href="inventory.html" class="action-item" style="text-decoration:none;"><div class="circle">📋</div>Orders</a>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- =======================================================
+         VIEW 4: PRODUCT DETAIL PAGE (PDP)
+         ======================================================= -->
+    <div id="pdp-view" class="page-view">
+        <div class="pdp-wrapper">
+            <div class="pdp-breadcrumbs">
+                <a class="nav-dashboard">Dropshipping Products</a> <span>></span> Outdoor <span>></span> Camping & Hiking <span>></span> Other Camping & Hiking Products
+            </div>
+
+            <div class="pdp-content-box">
+                <div class="pdp-left-col">
+                    <div class="pdp-main-img-box" id="pdp-main-img-box"></div>
+                </div>
+
+                <div class="pdp-right-col">
+                    <h1 class="pdp-product-title" id="pdp-product-title">Test Order Product</h1>
+                    
+                    <div class="pdp-supplier-row">
+                        <div>By <span class="pdp-supplier-link">3P EXPERTS</span> <span class="pdp-chat-icon">💬</span></div>
+                        <div class="pdp-item-no">Item No.: <span id="pdp-dynamic-sku">D01027RP906</span></div>
+                    </div>
+
+                    <div class="pdp-pricing">
+                        <div class="pdp-price-main" id="pdp-price-display">US$ 12.64</div>
+                        <div class="pdp-price-msrp" id="pdp-msrp-display">MSRP: US$ 39.99</div>
+                    </div>
+
+                    <div class="pdp-pickup-banner">
+                        <div>Pick-Up Price ⓘ : <strong id="pdp-pickup-display">US$ 9.48</strong></div>
+                        <a class="pdp-pickup-link">Purchase With A Prepaid Label</a>
+                    </div>
+
+                    <div class="pdp-action-grid">
+                        <a href="inventory.html" class="pdp-btn-action">View in Inventory List</a>
+                        <a href="#" class="pdp-btn-action pdp-btn-blue-text"><span style="font-size:16px;">✨</span> List to Store</a>
+                        <a href="#" class="pdp-btn-action">Download</a>
+                        <button class="pdp-btn-action" id="add-to-cart-btn">Add to Cart</button>
+                    </div>
+
+                    <div class="pdp-variant-row">
+                        <div class="pdp-variant-label">Color:</div>
+                        <div class="pdp-swatches">
+                            <div class="pdp-swatch active" id="pdp-variant-active">Simulated</div>
+                            <div class="pdp-swatch">Black</div><div class="pdp-swatch">White</div><div class="pdp-swatch">Lilac</div>
+                            <div class="pdp-swatch no-border">More</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pdp-info-row" style="margin-top: 10px;">
+                        <div class="pdp-info-label">Inventory:</div>
+                        <div class="pdp-info-value" id="pdp-inventory-display">25 in Stock</div>
+                    </div>
+                    <div class="pdp-info-row">
+                        <div class="pdp-info-label">Ship From:</div>
+                        <div class="pdp-info-value" style="border: 1px solid var(--doba-green); color: var(--doba-green); padding: 4px 8px; border-radius: 4px; font-weight: 500; display: inline-block;">United States</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         VIEW 5: SHOPPING CART
+         ======================================================= -->
+    <div id="cart-view" class="page-view">
+        <div class="cart-wrapper">
+            <h2 class="cart-title">Shopping Cart <span style="color: #999; font-weight: 400; font-size: 16px;">(1)</span></h2>
+            <div class="cart-box">
+                <div class="cart-header-row">
+                    <div style="flex: 1; padding-left: 36px;">Item</div>
+                    <div style="width: 150px; text-align: right;">Unit Price</div>
+                </div>
+                <div class="cart-item-row">
+                    <input type="checkbox" class="cart-checkbox" id="cart-item-checkbox">
+                    <div class="cart-thumb" id="cart-thumb-img">IMG</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 5px; color: #111;" id="cart-item-title">Test Order Product</div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 10px;">Ship From United States &nbsp;|&nbsp; Color : <span id="cart-item-color">Simulated</span></div>
+                        <div class="qty-box">
+                            <span class="qty-label">QTY:</span>
+                            <input type="number" class="qty-input" value="1" min="1">
+                        </div>
+                    </div>
+                    <div style="width: 150px; text-align: right; font-weight: 600; font-size: 14px; color: #111;" id="cart-item-price">US$ 12.64</div>
+                    <div style="margin-left: 20px; cursor: pointer; color: #999; font-size: 16px;">🗑</div>
+                </div>
+                <div class="cart-footer">
+                    <label style="font-size: 13px; display: flex; align-items: center; gap: 8px; color: #333; cursor: pointer;">
+                        <input type="checkbox" class="cart-checkbox" id="cart-select-all-checkbox"> Select All
+                    </label>
+                    <button class="btn-green" id="cart-checkout-btn" style="border-radius: 4px; padding: 12px 40px;">Check Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         VIEW 6: ORDER REVIEW (CHECKOUT)
+         ======================================================= -->
+    <div id="checkout-view" class="page-view">
+        <div class="checkout-wrapper">
+            
+            <!-- Left Column: Shipping & Items -->
+            <div class="checkout-left">
+                <div class="checkout-box">
+                    <div class="checkout-box-title">Shipping Address</div>
+                    
+                    <!-- Dynamic Shipping Container -->
+                    <div id="shipping-address-container">
+                        <a class="checkout-add-address trigger-add-address" id="btn-add-shipping">+ Add Address</a>
+                    </div>
+                    
+                    <div class="checkout-supplier">
+                        <div>Ship From <strong>United States</strong> by <strong>3P EXPERTS</strong></div>
+                        <div style="color: #2563eb; cursor: pointer;">Message to Supplier</div>
+                    </div>
+
+                    <div class="protection-row">
+                        <input type="checkbox" checked style="accent-color: #3b82f6;">
+                        <span style="color: #3b82f6; font-weight: 600;">🛡 Non-Defective Remorse Return Protection ⓘ</span>
+                        <strong style="margin-left: auto;">US$ 0.64</strong>
+                    </div>
+
+                    <table class="checkout-item-table">
+                        <tr><th>Item</th><th>Unit Price</th><th>QTY</th><th>Price</th><th>Shipping</th></tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <div style="width: 48px; height: 48px; background: #a4c9db; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: bold;" id="checkout-thumb">IMG</div>
+                                    <div>
+                                        <div style="font-weight: 600;" id="checkout-item-name">Umbrella With Storage Case</div>
+                                        <div style="font-size: 11px; color: #888; margin-top: 4px;">Item #<span id="checkout-item-sku">D01027RP906</span> ⌄</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td id="checkout-unit-price">US$ 12.64</td>
+                            <td>1</td>
+                            <td id="checkout-total-price">US$ 12.64</td>
+                            <td id="checkout-shipping-warning" style="color: #ea580c; font-weight: 500;">ⓘ Please add a shipping address</td>
+                        </tr>
+                    </table>
+
+                    <div class="checkout-store-info">
+                        <div class="store-info-col">
+                            <span class="store-info-label">ⓘ Store Order Info.<br><span style="color: #dc2626;">* Platform</span></span>
+                            <select class="store-info-input" style="color: #666; height: 35px; cursor: pointer;">
+                                <option value="">Please Select</option>
+                                <option value="Amazon">Amazon</option>
+                                <option value="eBay">eBay</option>
+                                <option value="Shopify">Shopify</option>
+                                <option value="Temu">Temu</option>
+                                <option value="TikTok Shop">TikTok Shop</option>
+                                <option value="Walmart">Walmart</option>
+                                <option value="SHEIN">SHEIN</option>
+                                <option value="BigCommerce">BigCommerce</option>
+                                <option value="WooCommerce">WooCommerce</option>
+                                <option value="Wix">Wix</option>
+                                <option value="Newegg">Newegg</option>
+                                <option value="Square">Square</option>
+                                <option value="Shift4Shop">Shift4Shop</option>
+                                <option value="Overstock">Overstock</option>
+                                <option value="Wayfair">Wayfair</option>
+                                <option value="Home Depot">Home Depot</option>
+                                <option value="Lowe's">Lowe's</option>
+                                <option value="Target">Target</option>
+                                <option value="AliExpress">AliExpress</option>
+                                <option value="Alibaba">Alibaba</option>
+                                <option value="Etsy">Etsy</option>
+                                <option value="BestBuy">BestBuy</option>
+                                <option value="Wish">Wish</option>
+                                <option value="Others">Others</option>
+                            </select>
+                            <span style="color: #ea580c; font-size: 11px;">Please select your sales platform.</span>
+                        </div>
+                        <div class="store-info-col">
+                            <span class="store-info-label"><br>Store Order ID</span>
+                            <input type="text" class="store-info-input" style="height: 35px;">
+                        </div>
+                        <div class="store-info-col">
+                            <span class="store-info-label"><br>Store Amount</span>
+                            <input type="text" class="store-info-input" placeholder="US$" style="height: 35px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Billing & Summary -->
+            <div class="checkout-right">
+                <div class="checkout-box">
+                    <div class="checkout-box-title">Billing Address</div>
+                    
+                    <!-- Dynamic Billing Container -->
+                    <div id="billing-address-container">
+                        <a class="checkout-add-address trigger-add-address" id="btn-add-billing">+ Add Address</a>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <div class="summary-row"><span>Item Subtotal</span><span id="summary-item-cost">--</span></div>
+                        <div class="summary-row"><span>Shipping Subtotal</span><span id="summary-shipping-cost">--</span></div>
+                        <div class="summary-row"><span>Sales Tax</span><span>--</span></div>
+                        
+                        <div class="summary-total">
+                            <span>Grand Total</span>
+                            <span id="summary-grand-total">--</span>
+                        </div>
+                        
+                        <button class="btn-green" id="place-order-btn" style="width: 100%; padding: 14px; font-size: 15px; border-radius: 4px;" onclick="alert('Simulation: Please add a shipping address first.')">Place Order</button>
+                    </div>
+                </div>
+                <div class="profile-complete-box">
+                    <h4>🛡 Complete your profile</h4>
+                    <p>Please complete your business profile to keep your account compliant and secure.</p>
+                    <a href="#">Complete Now →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =======================================================
+         MODALS 
+         ======================================================= -->
+    
+    <!-- 1. ADD TO CART SUCCESS MODAL -->
+    <div class="modal-overlay" id="add-to-cart-modal">
+        <div class="cart-modal-container">
+            <div style="text-align: right; cursor: pointer; color: #999; font-size: 18px;" id="close-cart-modal">✕</div>
+            <div style="text-align: center; margin-top: -10px;">
+                <div style="color: #16a34a; font-size: 22px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <span style="background: #16a34a; color: #fff; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">✓</span> 
+                    Added successfully
+                </div>
+                <button class="btn" style="border: 1px solid #ccc; background: #fff; margin-top: 20px; font-weight: 500; font-size: 13px; color: #333;" id="go-to-cart-btn">Go to Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. ADD ADDRESS MODAL -->
+    <div class="modal-overlay" id="add-address-modal">
+        <div class="address-modal-container">
+            <div class="address-modal-header">
+                Add Address
+                <span style="cursor: pointer; color: #999; font-weight: 400; font-size: 20px;" id="close-address-modal">✕</span>
+            </div>
+            <div class="address-modal-body">
+                
+                <div class="address-form-group">
+                    <span class="address-label">* Full Name</span>
+                    <input type="text" class="address-input" id="addr-fullname">
+                </div>
+
+                <div class="address-form-group">
+                    <span class="address-label">Phone Number</span>
+                    <div class="phone-input-wrapper">
+                        <span class="phone-prefix">+1</span>
+                        <input type="text" id="addr-phone">
+                    </div>
+                </div>
+
+                <div class="address-form-group full-width">
+                    <span class="address-label">* Street Address Line 1</span>
+                    <input type="text" class="address-input" id="addr-line1">
+                </div>
+
+                <div class="address-form-group full-width">
+                    <span class="address-label">Street Address Line 2</span>
+                    <input type="text" class="address-input" id="addr-line2">
+                </div>
+
+                <div class="address-form-group">
+                    <span class="address-label">* City</span>
+                    <input type="text" class="address-input" id="addr-city">
+                </div>
+
+                <div class="address-form-group">
+                    <span class="address-label">* State/Region</span>
+                    <select class="address-input" id="addr-state" style="color: #666; cursor: pointer;">
+                        <option value="">Please select State/Province/Region</option>
+                        <option value="AL">Alabama</option><option value="AK">Alaska</option><option value="AZ">Arizona</option>
+                        <option value="AR">Arkansas</option><option value="CA">California</option><option value="CO">Colorado</option>
+                        <option value="CT">Connecticut</option><option value="DE">Delaware</option><option value="FL">Florida</option>
+                        <option value="GA">Georgia</option><option value="HI">Hawaii</option><option value="ID">Idaho</option>
+                        <option value="IL">Illinois</option><option value="IN">Indiana</option><option value="IA">Iowa</option>
+                        <option value="KS">Kansas</option><option value="KY">Kentucky</option><option value="LA">Louisiana</option>
+                        <option value="ME">Maine</option><option value="MD">Maryland</option><option value="MA">Massachusetts</option>
+                        <option value="MI">Michigan</option><option value="MN">Minnesota</option><option value="MS">Mississippi</option>
+                        <option value="MO">Missouri</option><option value="MT">Montana</option><option value="NE">Nebraska</option>
+                        <option value="NV">Nevada</option><option value="NH">New Hampshire</option><option value="NJ">New Jersey</option>
+                        <option value="NM">New Mexico</option><option value="NY">New York</option><option value="NC">North Carolina</option>
+                        <option value="ND">North Dakota</option><option value="OH">Ohio</option><option value="OK">Oklahoma</option>
+                        <option value="OR">Oregon</option><option value="PA">Pennsylvania</option><option value="RI">Rhode Island</option>
+                        <option value="SC">South Carolina</option><option value="SD">South Dakota</option><option value="TN">Tennessee</option>
+                        <option value="TX">Texas</option><option value="UT">Utah</option><option value="VT">Vermont</option>
+                        <option value="VA">Virginia</option><option value="WA">Washington</option><option value="WV">West Virginia</option>
+                        <option value="WI">Wisconsin</option><option value="WY">Wyoming</option>
+                    </select>
+                </div>
+
+                <div class="address-form-group">
+                    <span class="address-label">* Zip Code</span>
+                    <input type="text" class="address-input" id="addr-zip">
+                </div>
+
+                <div class="address-form-group">
+                    <span class="address-label">* Country/Region</span>
+                    <div class="custom-select-wrapper" id="country-dropdown-wrapper">
+                        <div class="custom-select-trigger" id="country-trigger">
+                            <span id="country-display">🇺🇸 United States</span>
+                            <span style="color: #999;">^</span>
+                        </div>
+                        <div class="custom-select-dropdown" id="country-dropdown-content">
+                            <div class="country-tabs">
+                                <div class="country-tab">Europe</div><div class="country-tab active">America</div><div class="country-tab">Oceania</div>
+                            </div>
+                            <div class="country-list">
+                                <div class="country-option" onclick="selectCountry('🇨🇦 Canada')">🇨🇦 Canada</div>
+                                <div class="country-option" onclick="selectCountry('🇵🇷 Puerto Rico')">🇵🇷 Puerto Rico</div>
+                                <div class="country-option active" onclick="selectCountry('🇺🇸 United States')">🇺🇸 United States</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="address-modal-footer">
+                <button class="btn" style="border: 1px solid #ccc; background: #fff; font-size: 13px; font-weight: 500; color: #333; padding: 8px 16px; border-radius: 4px;" id="cancel-address-btn">Cancel</button>
+                <button class="btn-green" style="font-size: 13px; padding: 8px 16px; border-radius: 4px;" id="confirm-address-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- GREEN SUPPORT CHAT ICON -->
+    <div style="position: fixed; bottom: 40px; right: 40px; width: 60px; height: 60px; background: var(--doba-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 185, 41, 0.3); z-index: 1000;">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="white"/>
+        </svg>
+    </div>
+
+    <!-- GLOBAL SAFETY HARBOR BANNER AT BOTTOM -->
+    <div class="simulation-banner">
+        ⚠️ TRAINING SIMULATION ONLY: This is a non-functional training environment created for educational purposes. It is not affiliated with Doba Inc. Do not enter real credentials.
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- BACK BUTTON MEMORY STACK ---
+            let viewHistory = [];
+            let currentViewId = 'main-splash';
+            const backBtnContainer = document.getElementById('global-back-btn');
+
+            if(window.location.hash === '#cart') {
+                setTimeout(() => showView('cart-view'), 50);
+            }
+
+            // --- SHARED HEADER LOGIC & VIEW ROUTER ---
+            const sharedHeader = document.getElementById('shared-header');
+            
+            window.showView = function(viewId, isBackwardsNav = false) {
+                if (!isBackwardsNav && currentViewId !== viewId) {
+                    viewHistory.push(currentViewId);
+                }
+                currentViewId = viewId;
+
+                if(backBtnContainer) {
+                    if (viewHistory.length > 0 && viewId !== 'main-splash' && viewId !== 'login-page') {
+                        backBtnContainer.style.display = 'flex';
+                    } else {
+                        backBtnContainer.style.display = 'none';
+                    }
+                }
+
+                document.querySelectorAll('.page-view').forEach(view => {
+                    view.classList.remove('active-view');
+                    if (view.contains(sharedHeader)) {
+                        document.body.appendChild(sharedHeader);
+                        sharedHeader.style.display = 'none';
+                    }
+                });
+                
+                const targetView = document.getElementById(viewId);
+                if(targetView) {
+                    targetView.classList.add('active-view');
+                    if (viewId === 'dashboard' || viewId === 'pdp-view' || viewId === 'cart-view' || viewId === 'checkout-view') {
+                        targetView.insertBefore(sharedHeader, targetView.firstChild);
+                        sharedHeader.style.display = 'flex';
+                    }
+                }
+                window.scrollTo(0,0);
+            }
+
+            if(backBtnContainer) {
+                backBtnContainer.addEventListener('click', () => {
+                    if(viewHistory.length > 0) {
+                        const previousView = viewHistory.pop();
+                        showView(previousView, true);
+                    }
+                });
+            }
+
+            document.querySelectorAll('.splash-to-login').forEach(btn => btn.addEventListener('click', e => { e.preventDefault(); showView('login-page'); }));
+            document.querySelectorAll('.nav-splash').forEach(btn => btn.addEventListener('click', e => { e.preventDefault(); showView('main-splash'); }));
+            
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                document.getElementById('simulation-status').style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('simulation-status').style.display = 'none';
+                    showView('dashboard');
+                }, 600);
+            });
+
+            document.querySelectorAll('.nav-dashboard').forEach(btn => btn.addEventListener('click', e => { e.preventDefault(); showView('dashboard'); }));
+            document.querySelectorAll('.nav-login').forEach(btn => btn.addEventListener('click', e => { e.preventDefault(); showView('login-page'); }));
+            document.querySelectorAll('.nav-cart').forEach(btn => btn.addEventListener('click', e => { e.preventDefault(); showView('cart-view'); }));
+
+            // --- SEARCH LOGIC -> PRODUCT DETAIL PAGE ---
+            const globalSearchInput = document.getElementById('global-search-input');
+            const globalSearchBtn = document.getElementById('global-search-btn');
+
+            let currentPrice = "12.64"; 
+            let currentSKU = "D01027RP906"; 
+
+            function triggerPDP() {
+                const query = globalSearchInput.value.trim().toUpperCase();
+                if(query !== '') {
+                    const randPrice = (Math.random() * 50 + 10).toFixed(2);
+                    const randStock = Math.floor(Math.random() * 500) + 5;
+                    currentPrice = randPrice;
+                    currentSKU = query;
+
+                    document.getElementById('pdp-dynamic-sku').textContent = query;
+                    document.getElementById('pdp-product-title').textContent = "Test Order Product: " + query;
+                    document.getElementById('pdp-variant-active').textContent = query;
+                    document.getElementById('pdp-price-display').textContent = "US$ " + randPrice;
+                    document.getElementById('pdp-pickup-display').textContent = "US$ " + randPrice;
+                    document.getElementById('pdp-msrp-display').textContent = "MSRP: US$ " + (randPrice * 1.5).toFixed(2);
+                    document.getElementById('pdp-inventory-display').textContent = randStock + " in Stock";
+                    
+                    document.getElementById('pdp-main-img-box').innerHTML = `<div style="font-size: 28px; font-weight: 800; text-align: center; text-shadow: 1px 1px 4px rgba(0,0,0,0.2);">SIMULATED PRODUCT<br><br><span style="font-size: 20px; font-weight: 500; color: #fff;">${query}</span></div>`;
+                    globalSearchInput.value = query;
+
+                    document.getElementById('simulation-status').style.display = 'flex';
+                    setTimeout(() => {
+                        document.getElementById('simulation-status').style.display = 'none';
+                        showView('pdp-view');
+                    }, 500);
+                }
+            }
+
+            globalSearchBtn.addEventListener('click', triggerPDP);
+            globalSearchInput.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') { e.preventDefault(); triggerPDP(); }
+            });
+
+            // --- ADD TO CART MODAL LOGIC ---
+            const cartModal = document.getElementById('add-to-cart-modal');
+            
+            document.getElementById('add-to-cart-btn').addEventListener('click', () => {
+                document.getElementById('header-cart-badge').textContent = '1';
+                
+                document.getElementById('cart-thumb-img').textContent = currentSKU.substring(0,3);
+                document.getElementById('cart-item-title').textContent = "Test Order Product: " + currentSKU;
+                document.getElementById('cart-item-color').textContent = currentSKU;
+                document.getElementById('cart-item-price').textContent = "US$ " + currentPrice;
+
+                document.getElementById('checkout-thumb').textContent = currentSKU.substring(0,3);
+                document.getElementById('checkout-item-name').textContent = "Test Order Product: " + currentSKU;
+                document.getElementById('checkout-item-sku').textContent = currentSKU;
+                document.getElementById('checkout-unit-price').textContent = "US$ " + currentPrice;
+                document.getElementById('checkout-total-price').textContent = "US$ " + currentPrice;
+
+                cartModal.style.display = 'flex';
+            });
+
+            document.getElementById('close-cart-modal').addEventListener('click', () => cartModal.style.display = 'none');
+            document.getElementById('go-to-cart-btn').addEventListener('click', () => {
+                cartModal.style.display = 'none';
+                window.open(window.location.pathname + '#cart', '_blank');
+                showView('cart-view');
+            });
+
+            // --- CART CHECKBOX LOGIC ---
+            const itemCheckbox = document.getElementById('cart-item-checkbox');
+            const selectAllCheckbox = document.getElementById('cart-select-all-checkbox');
+
+            itemCheckbox.addEventListener('change', function() { selectAllCheckbox.checked = this.checked; });
+            selectAllCheckbox.addEventListener('change', function() { itemCheckbox.checked = this.checked; });
+
+            // --- CHECKOUT ROUTING LOGIC ---
+            document.getElementById('cart-checkout-btn').addEventListener('click', () => {
+                if(!itemCheckbox.checked) {
+                    alert("Please select an item to checkout.");
+                    return;
+                }
+                document.getElementById('summary-item-cost').textContent = "US$ " + currentPrice;
+                document.getElementById('simulation-status').style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('simulation-status').style.display = 'none';
+                    showView('checkout-view');
+                }, 400);
+            });
+
+
+            // --- ADD ADDRESS LOGIC & INJECTION ---
+            const addressModal = document.getElementById('add-address-modal');
+            let activeAddressContext = null; // Tracks if they clicked Shipping or Billing
+            
+            document.getElementById('btn-add-shipping').addEventListener('click', () => {
+                activeAddressContext = 'shipping';
+                addressModal.style.display = 'flex';
+            });
+
+            document.getElementById('btn-add-billing').addEventListener('click', () => {
+                activeAddressContext = 'billing';
+                addressModal.style.display = 'flex';
+            });
+
+            document.getElementById('close-address-modal').addEventListener('click', () => addressModal.style.display = 'none');
+            document.getElementById('cancel-address-btn').addEventListener('click', () => addressModal.style.display = 'none');
+            
+            document.getElementById('confirm-address-btn').addEventListener('click', () => {
+                addressModal.style.display = 'none';
+                
+                // Read values or use fallbacks for simulation
+                const fullname = document.getElementById('addr-fullname').value || 'Trainee User';
+                const phone = document.getElementById('addr-phone').value || '555-0123';
+                const line1 = document.getElementById('addr-line1').value || '123 Simulation Way';
+                const line2 = document.getElementById('addr-line2').value;
+                const city = document.getElementById('addr-city').value || 'Tech City';
+                const state = document.getElementById('addr-state').value || 'CA';
+                const zip = document.getElementById('addr-zip').value || '90210';
+                const countryText = document.getElementById('country-display').textContent; 
+                
+                // Build dynamic HTML address block
+                const addressBlock = `
+                    <div style="font-size: 13px; color: #333; line-height: 1.6; margin-top: 10px; background: #f9fafb; padding: 16px; border-radius: 4px; border: 1px solid #e5e7eb;">
+                        <div style="font-weight: 700; color: #111; margin-bottom: 4px;">${fullname} <span style="font-weight: 400; color: #666; margin-left: 10px;">+1 ${phone}</span></div>
+                        <div>${line1} ${line2 ? '<br>' + line2 : ''}</div>
+                        <div>${city}, ${state} ${zip}</div>
+                        <div>${countryText}</div>
+                        <div style="margin-top: 12px;">
+                            <a href="#" class="checkout-add-address" onclick="document.getElementById('add-address-modal').style.display='flex'">Edit Address</a>
+                        </div>
+                    </div>
+                `;
+
+                if (activeAddressContext === 'shipping') {
+                    // Inject Address
+                    document.getElementById('shipping-address-container').innerHTML = addressBlock;
+                    
+                    // Update Warning to Green Shipping Rate
+                    document.getElementById('checkout-shipping-warning').innerHTML = '<span style="color: #16a34a; font-weight: 600;">Standard - US$ 4.50</span>';
+                    
+                    // Update Summary Totals
+                    document.getElementById('summary-shipping-cost').textContent = 'US$ 4.50';
+                    document.getElementById('summary-grand-total').textContent = 'US$ ' + (parseFloat(currentPrice) + 4.50).toFixed(2);
+                    
+                    // Activate Place Order Button
+                    document.getElementById('place-order-btn').onclick = function() {
+                        alert('Simulation: Order Placed Successfully!');
+                    };
+                } else if (activeAddressContext === 'billing') {
+                    // Inject Address
+                    document.getElementById('billing-address-container').innerHTML = addressBlock;
+                }
+
+                // Reset form inputs for next use
+                document.querySelectorAll('.address-input').forEach(input => input.value = '');
+                document.getElementById('addr-phone').value = '';
+            });
+
+            // --- CUSTOM COUNTRY DROPDOWN LOGIC ---
+            const countryTrigger = document.getElementById('country-trigger');
+            const countryDropdown = document.getElementById('country-dropdown-content');
+            const countryDisplay = document.getElementById('country-display');
+
+            countryTrigger.addEventListener('click', () => { countryDropdown.classList.toggle('open'); });
+
+            document.addEventListener('click', (e) => {
+                if(!document.getElementById('country-dropdown-wrapper').contains(e.target)) {
+                    countryDropdown.classList.remove('open');
+                }
+            });
+
+            window.selectCountry = function(name) {
+                countryDisplay.textContent = name;
+                document.querySelectorAll('.country-option').forEach(opt => opt.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+                countryDropdown.classList.remove('open');
+            };
+
+        });
+    </script>
+</body>
+</html>
